@@ -229,6 +229,10 @@ public class GameController : MonoBehaviour {
 					MoveRobot (movs);
 				}
 				// Stop play mode -- Click on Stop button
+				if ((hitTag == "butStop") && (Time.time > nextClick)) {
+					nextClick = Time.time + clickRate;
+					// Do something
+				}
 			}
 		}
 
@@ -283,6 +287,56 @@ public class GameController : MonoBehaviour {
 		// List containing the actions -- To be used for tags
 		GameObject[] actionList;
 		actionList = new GameObject[10];
+
+		// Delete items created from previous function calls
+		GameObject[] prevList;
+		if (movs.Length > 1){
+			// Delete copies of items tagged "action01"
+			prevList = GameObject.FindGameObjectsWithTag ("action01");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action02"
+			prevList = GameObject.FindGameObjectsWithTag ("action02");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action03"
+			prevList = GameObject.FindGameObjectsWithTag ("action03");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action04"
+			prevList = GameObject.FindGameObjectsWithTag ("action04");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action05"
+			prevList = GameObject.FindGameObjectsWithTag ("action05");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action06"
+			prevList = GameObject.FindGameObjectsWithTag ("action06");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action07"
+			prevList = GameObject.FindGameObjectsWithTag ("action07");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action08"
+			prevList = GameObject.FindGameObjectsWithTag ("action08");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+			// Delete copies of items tagged "action09"
+			prevList = GameObject.FindGameObjectsWithTag ("action09");
+			for (int i = 0; i < prevList.Length; i++){
+				Destroy (prevList[i]);
+			}
+		}
 
 		for (int i = 0; i < movs.Length; i++) {
 			nextMov = movs [i];
