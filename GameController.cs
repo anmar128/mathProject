@@ -62,12 +62,12 @@ public class GameController : MonoBehaviour {
 		Quaternion robotRotation = Quaternion.identity;
 		Quaternion finishRotation = Quaternion.identity;
 		
-		// Instantiate the start-finish lines and the robot
+		// Instantiate poisition-rotation for the start-finish lines and the robot
 		Instantiate (robot, robotStart, robotRotation);
 		Instantiate (startPoint, startPosition, startRotation);
 		Instantiate (finishPoint, finishPosition, finishRotation);
 
-		// Intantiate the numbers at the start -- Convert randStart to string
+		// Intantiate poisition-rotation for the numbers at the start -- Convert randStart to string
 		string strStart = randStart.ToString();
 		Vector3 numStartPosition = new Vector3 ((-numStartValues.x+randStart/10), numStartValues.y, numStartValues.z);
 		Quaternion numStartRotation = Quaternion.identity;
@@ -112,7 +112,7 @@ public class GameController : MonoBehaviour {
 			numStartPosition.x = numStartPosition.x + 0.3f;
 		}
 
-		// Intantiate the numbers at the finish -- Convert randFinish to string
+		// Intantiate poisition-rotation for the numbers at the finish -- Convert randFinish to string
 		string strFinish = randFinish.ToString();
 		Vector3 numFinishPosition = new Vector3 ((randFinish/10), numFinishValues.y, numFinishValues.z);
 		Quaternion numFinishRotation = Quaternion.identity;
@@ -170,69 +170,71 @@ public class GameController : MonoBehaviour {
 			// Handle click on the control panel icons
 			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 			RaycastHit hit;
-			if(Physics.Raycast (ray, out hit, 100)){
+			if (Physics.Raycast (ray, out hit, 100)) {
 				string hitTag = hit.transform.tag;
 
-				if((hitTag == "left50") && (Time.time > nextClick)){
+				if ((hitTag == "left50") && (Time.time > nextClick)) {
 					movs = movs + "q";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "left10") && (Time.time > nextClick)){
+				if ((hitTag == "left10") && (Time.time > nextClick)) {
 					movs = movs + "w";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "left05") && (Time.time > nextClick)){
+				if ((hitTag == "left05") && (Time.time > nextClick)) {
 					movs = movs + "e";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "left01") && (Time.time > nextClick)){
+				if ((hitTag == "left01") && (Time.time > nextClick)) {
 					movs = movs + "r";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "right01") && (Time.time > nextClick)){
+				if ((hitTag == "right01") && (Time.time > nextClick)) {
 					movs = movs + "a";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "right05") && (Time.time > nextClick)){
+				if ((hitTag == "right05") && (Time.time > nextClick)) {
 					movs = movs + "s";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "right10") && (Time.time > nextClick)){
+				if ((hitTag == "right10") && (Time.time > nextClick)) {
 					movs = movs + "d";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
-				if((hitTag == "right50") && (Time.time > nextClick)){
+				if ((hitTag == "right50") && (Time.time > nextClick)) {
 					movs = movs + "f";
 					nextClick = Time.time + clickRate;
 					print (movs);
-					EnqueueToActionList(movs);
+					EnqueueToActionList (movs);
 				}
+
+				// Enter play mode -- Click on Play button
+				if ((hitTag == "butPlay") && (Time.time > nextClick)) {
+					nextClick = Time.time + clickRate;
+					currPoint = randStart;
+					MoveRobot (movs);
+				}
+				// Stop play mode -- Click on Stop button
 			}
-		}
-		//Enter play mode
-		if ((Input.GetKey ("z")) && (Time.time > nextClick)) {
-			nextClick = Time.time + clickRate;
-			currPoint = randStart;
-			MoveRobot(movs);
 		}
 
 	}
 
-	//Calculation of the robot's new position according to movs
+	// Calculation of the robot's new position according to movs
 	void MoveRobot(string movs){
 		char nextMov;
 		for (int i = 0; i < movs.Length; i++) 
@@ -273,18 +275,18 @@ public class GameController : MonoBehaviour {
 	void EnqueueToActionList(string movs){
 		char nextMov;
 		string nextTag = "errList";
-		print ("ENQUEUE BITCH!");
 
+		// Initialize poisition-rotation for the action list
 		Vector3 listPosition = new Vector3 (listStartValues.x, listStartValues.y, listStartValues.z);
 		Quaternion listRotation = Quaternion.identity;
 
-		// List containing the actions -- to be used for tags
+		// List containing the actions -- To be used for tags
 		GameObject[] actionList;
 		actionList = new GameObject[10];
 
 		for (int i = 0; i < movs.Length; i++) {
 			nextMov = movs [i];
-			// Calculate the current tag
+			// Calculate current tag
 			switch (i){
 			case 0:
 				nextTag = "action01";
@@ -322,7 +324,7 @@ public class GameController : MonoBehaviour {
 			//	break;
 			}
 
-			// Calculate the next move, add it to the action list
+			// Get the next move from movs string and add it to the action list
 			switch (nextMov) {
 			case 'q':
 				actionList[i] = Instantiate(listBk50, listPosition, listRotation) as GameObject;
@@ -365,7 +367,7 @@ public class GameController : MonoBehaviour {
 				print (actionList[i].gameObject.tag);
 				break;
 			}
-			// Change the y-axis value of listPosition -- to be used for the next action
+			// Change the y-axis value of listPosition -- To be used for the next action
 			listPosition.y = listPosition.y - 0.75f;
 		}
 	}
