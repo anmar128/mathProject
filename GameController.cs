@@ -28,7 +28,8 @@ public class GameController : MonoBehaviour {
 	// GameObject and Vector3 variables to be used
 	// for actionList initialization and updates
 	public Vector3 listStartValues;
-	public Vector3 listCurrValues;
+	public Vector3 pressPlayValues;
+	public Vector3 pressStopValues;
 
 	public GameObject listBk50;
 	public GameObject listBk10;
@@ -38,6 +39,8 @@ public class GameController : MonoBehaviour {
 	public GameObject listFw05;
 	public GameObject listFw10;
 	public GameObject listFw50;
+	public GameObject pressPlay;
+	public GameObject pressStop;
 
 	// Int variables containing the start, finish and current points of the robot
 	public int randStart;
@@ -165,6 +168,8 @@ public class GameController : MonoBehaviour {
 	public float nextClick = 0.0f;
 	public float clickRate = 2.5f;
 	void Update () {
+		string pressTag = "errPress";
+
 		// Get mouse input
 		if (Input.GetMouseButton (0)) {
 			// Handle click on the control panel icons
@@ -226,11 +231,39 @@ public class GameController : MonoBehaviour {
 				if ((hitTag == "butPlay") && (Time.time > nextClick)) {
 					nextClick = Time.time + clickRate;
 					currPoint = randStart;
+					// Update Play-button
+					pressTag = "pressdPlay";
+					Vector3 pressPosition = new Vector3 (pressPlayValues.x, pressPlayValues.y, pressPlayValues.z);
+					Quaternion pressRotation = Quaternion.identity;
+					GameObject pressButton = Instantiate (pressPlay, pressPosition, pressRotation) as GameObject;
+					pressButton.gameObject.tag = pressTag;
+					// Update Stop-button -- theoretically there should be only one item
+					// tagged pressdStop, but search for multiple entries just in case
+					GameObject[] prevList;
+					prevList = GameObject.FindGameObjectsWithTag ("pressdStop");
+					for (int i = 0; i < prevList.Length; i++){
+						Destroy (prevList[i]);
+					}
+
 					MoveRobot (movs);
 				}
 				// Stop play mode -- Click on Stop button
 				if ((hitTag == "butStop") && (Time.time > nextClick)) {
 					nextClick = Time.time + clickRate;
+					// Update Stop-button
+					pressTag = "pressdStop";
+					Vector3 pressPosition = new Vector3 (pressStopValues.x, pressStopValues.y, pressStopValues.z);
+					Quaternion pressRotation = Quaternion.identity;
+					GameObject pressButton = Instantiate (pressStop, pressPosition, pressRotation) as GameObject;
+					pressButton.gameObject.tag = pressTag;
+					// Update Play-button -- theoretically there should be only one item
+					// tagged pressdPlay, but search for multiple entries just in case
+					GameObject[] prevList;
+					prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+					for (int i = 0; i < prevList.Length; i++){
+						Destroy (prevList[i]);
+					}
+
 					// Do something
 				}
 			}
@@ -275,7 +308,7 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	// Enque an action to the actionList
+	// Enque actions to the actionList
 	void EnqueueToActionList(string movs){
 		char nextMov;
 		string nextTag = "errList";
