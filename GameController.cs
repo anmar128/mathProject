@@ -172,58 +172,111 @@ public class GameController : MonoBehaviour {
 
 		// Get mouse input
 		if (Input.GetMouseButton (0)) {
-			// Handle click on the control panel icons
 			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 			RaycastHit hit;
-			if (Physics.Raycast (ray, out hit, 100)) {
+			if (Physics.Raycast (ray, out hit)) {
 				string hitTag = hit.transform.tag;
-
+				// Handle click on the control panel icons
 				if ((hitTag == "left50") && (Time.time > nextClick)) {
 					movs = movs + "q";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "left10") && (Time.time > nextClick)) {
 					movs = movs + "w";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "left05") && (Time.time > nextClick)) {
 					movs = movs + "e";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "left01") && (Time.time > nextClick)) {
 					movs = movs + "r";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "right01") && (Time.time > nextClick)) {
 					movs = movs + "a";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "right05") && (Time.time > nextClick)) {
 					movs = movs + "s";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "right10") && (Time.time > nextClick)) {
 					movs = movs + "d";
 					nextClick = Time.time + clickRate;
-					print (movs);
 					EnqueueToActionList (movs);
 				}
 				if ((hitTag == "right50") && (Time.time > nextClick)) {
 					movs = movs + "f";
 					nextClick = Time.time + clickRate;
-					print (movs);
+					EnqueueToActionList (movs);
+				}
+
+				// Handle click on the actionList
+				if ((hitTag == "action01") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 1);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action02") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 2);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action03") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 3);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action04") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 4);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action05") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 5);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action06") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 6);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action07") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 7);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action08") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 8);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action09") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 9);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action10") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 10);
 					EnqueueToActionList (movs);
 				}
 
@@ -244,7 +297,7 @@ public class GameController : MonoBehaviour {
 					for (int i = 0; i < prevList.Length; i++){
 						Destroy (prevList[i]);
 					}
-
+					print (movs);
 					MoveRobot (movs);
 				}
 				// Stop play mode -- Click on Stop button
@@ -266,13 +319,13 @@ public class GameController : MonoBehaviour {
 
 					// Do something
 				}
+
 			}
 		}
-
 	}
 
 	// Calculation of the robot's new position according to movs
-	void MoveRobot(string movs){
+	void MoveRobot (string movs) {
 		char nextMov;
 		for (int i = 0; i < movs.Length; i++) 
 		{
@@ -308,7 +361,7 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
-	// Enque actions to the actionList
+	// Enqueue actions to the actionList
 	void EnqueueToActionList(string movs){
 		char nextMov;
 		string nextTag = "errList";
@@ -323,7 +376,7 @@ public class GameController : MonoBehaviour {
 
 		// Delete items created from previous function calls
 		GameObject[] prevList;
-		if (movs.Length > 1){
+		if (movs.Length >= 0){
 			// Delete copies of items tagged "action01"
 			prevList = GameObject.FindGameObjectsWithTag ("action01");
 			for (int i = 0; i < prevList.Length; i++){
@@ -416,42 +469,42 @@ public class GameController : MonoBehaviour {
 			case 'q':
 				actionList[i] = Instantiate(listBk50, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'w':
 				actionList[i] = Instantiate(listBk10, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'e':
 				actionList[i] = Instantiate(listBk05, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'r':
 				actionList[i] = Instantiate(listBk01, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'a':
 				actionList[i] = Instantiate(listFw01, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 's':
 				actionList[i] = Instantiate(listFw05, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'd':
 				actionList[i] = Instantiate(listFw10, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'f':
 				actionList[i] = Instantiate(listFw50, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
-				print (actionList[i].gameObject.tag);
+				actionList[i].gameObject.name = nextTag;
 				break;
 			}
 			// Change the y-axis value of listPosition -- To be used for the next action
@@ -459,6 +512,35 @@ public class GameController : MonoBehaviour {
 		}
 	}
 
+	// Delete the m-th move from the actionList
+	// Given the way this function is called it is impossible to try and delete an invalid move
+	string DeleteFromActionList (string movs, int m) {
+		char nextMov;
+		string newMov = "";
+		int acts = movs.Length;
+
+		if (m == 1) {
+			for (int i = 1; i < movs.Length; i++) {
+				nextMov = movs [i];
+				newMov = newMov + nextMov;
+			}
+		} else if (m == acts) {
+			for (int i = 0; i < acts - 1; i++) {
+				nextMov = movs [i];
+				newMov = newMov + nextMov;
+			}
+		} else {
+			for (int i = 0; i < m - 1; i++) {
+				nextMov = movs [i];
+				newMov = newMov + nextMov;
+			}
+			for (int i = m; i < acts; i++) {
+				nextMov = movs [i];
+				newMov = newMov + nextMov;
+			}
+		}
+		return (newMov);
+	}
 	
 	/*
 	 // Update -- keyboard input
@@ -497,6 +579,29 @@ public class GameController : MonoBehaviour {
 			PlayRobot(movs);
 		}
 		*/
+
+
+	/*
+	// Delete the first action from the actionList using keyboard input
+	if ((Input.GetKey ("z")) && (Time.time > nextClick)) {
+		nextClick = Time.time + clickRate;
+		print ("DELETE ACTION01 BITCH!");
+		GameObject[] prevList;
+		prevList = GameObject.FindGameObjectsWithTag ("action01");
+		for (int i = 0; i < prevList.Length; i++){
+			Destroy (prevList[i]);
+		}
+		// Shift every other action by one
+		char nextMov;
+		string newMov = "";
+		for (int i = 1; i < movs.Length; i++) {
+			nextMov = movs[i];
+			newMov = newMov + nextMov;
+		}
+		movs = newMov;
+		EnqueueToActionList (movs);
+	}
+	*/
 	
 
 }
