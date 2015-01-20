@@ -56,7 +56,165 @@ public class GameController : MonoBehaviour {
 		randStart = Random.Range(0, 15);
 		randFinish = Random.Range(40, 65);
 		currPoint = randStart;
-		
+		// Initialize robot and start-finish lines
+		InitializeRobot (randStart, currPoint, randFinish);
+	}
+	
+	// Update is called once per frame
+	// movs contains the sequence of moves entered -- q,w,e,r for left and a,s,d,f for right
+	public string movs = "";
+	public float nextClick = 0.0f;
+	public float clickRate = 0.25f;
+	void Update () {
+		string pressTag = "errPress";
+
+		// Get mouse input
+		if (Input.GetMouseButton (0)) {
+			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+			RaycastHit hit;
+			if (Physics.Raycast (ray, out hit)) {
+				string hitTag = hit.transform.tag;
+				// Handle click on the control panel icons -- to add actions on the actionList
+				if ((hitTag == "left50") && (Time.time > nextClick)) {
+					movs = movs + "q";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "left10") && (Time.time > nextClick)) {
+					movs = movs + "w";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "left05") && (Time.time > nextClick)) {
+					movs = movs + "e";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "left01") && (Time.time > nextClick)) {
+					movs = movs + "r";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "right01") && (Time.time > nextClick)) {
+					movs = movs + "a";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "right05") && (Time.time > nextClick)) {
+					movs = movs + "s";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "right10") && (Time.time > nextClick)) {
+					movs = movs + "d";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "right50") && (Time.time > nextClick)) {
+					movs = movs + "f";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+
+				// Handle click on the actionList -- to remove actions from the actionList
+				if ((hitTag == "action01") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					// Calculate new actionList (movs) -- update actionList
+					movs = DeleteFromActionList (movs, 1);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action02") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 2);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action03") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 3);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action04") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 4);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action05") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 5);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action06") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 6);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action07") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 7);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action08") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 8);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action09") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 9);
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "action10") && (Time.time > nextClick)){
+					nextClick = Time.time + clickRate;
+					movs = DeleteFromActionList (movs, 10);
+					EnqueueToActionList (movs);
+				}
+
+				// Enter play mode -- click on Play button
+				if ((hitTag == "butPlay") && (Time.time > nextClick)) {
+					nextClick = Time.time + clickRate;
+					currPoint = randStart;
+					// Update Play-button
+					pressTag = "pressdPlay";
+					Vector3 pressPosition = new Vector3 (pressPlayValues.x, pressPlayValues.y, pressPlayValues.z);
+					Quaternion pressRotation = Quaternion.identity;
+					GameObject pressButton = Instantiate (pressPlay, pressPosition, pressRotation) as GameObject;
+					pressButton.gameObject.tag = pressTag;
+					// Update Stop-button -- in theory there should be only one item
+					// tagged pressdStop, but search for multiple entries just in case
+					GameObject[] prevList;
+					prevList = GameObject.FindGameObjectsWithTag ("pressdStop");
+					for (int i = 0; i < prevList.Length; i++){
+						Destroy (prevList[i]);
+					}
+					print (movs);
+					MoveRobot (movs);
+				}
+				// Stop play mode -- click on Stop button
+				if ((hitTag == "butStop") && (Time.time > nextClick)) {
+					nextClick = Time.time + clickRate;
+					// Update Stop-button
+					pressTag = "pressdStop";
+					Vector3 pressPosition = new Vector3 (pressStopValues.x, pressStopValues.y, pressStopValues.z);
+					Quaternion pressRotation = Quaternion.identity;
+					GameObject pressButton = Instantiate (pressStop, pressPosition, pressRotation) as GameObject;
+					pressButton.gameObject.tag = pressTag;
+					// Update Play-button -- in theory there should be only one item
+					// tagged pressdPlay, but search for multiple entries just in case
+					GameObject[] prevList;
+					prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+					for (int i = 0; i < prevList.Length; i++){
+						Destroy (prevList[i]);
+					}
+					// Re-initialize robot and start-finish lines
+					InitializeRobot (randStart, randStart, randFinish);
+				}
+
+			}
+		}
+	}
+
+	// Initialize robot and start-finish lines
+	void InitializeRobot (int randStart, int currPoint, int randFinish) {
 		// Initialize poisition-rotation for the lines and the robot
 		Vector3 startPosition = new Vector3 ((-startValues.x+randStart/10), startValues.y, startValues.z);
 		Vector3 robotStart = new Vector3 (startPosition.x, robotValues.y, robotValues.z);
@@ -64,7 +222,7 @@ public class GameController : MonoBehaviour {
 		Quaternion startRotation = Quaternion.identity;
 		Quaternion robotRotation = Quaternion.identity;
 		Quaternion finishRotation = Quaternion.identity;
-		
+
 		// Instantiate poisition-rotation for the start-finish lines and the robot
 		Instantiate (robot, robotStart, robotRotation);
 		Instantiate (startPoint, startPosition, startRotation);
@@ -119,7 +277,7 @@ public class GameController : MonoBehaviour {
 		string strFinish = randFinish.ToString();
 		Vector3 numFinishPosition = new Vector3 ((randFinish/10), numFinishValues.y, numFinishValues.z);
 		Quaternion numFinishRotation = Quaternion.identity;
-		
+
 		// Check the digits one-by-one and instantiate the corresponding number
 		for (int i = 0; i < strFinish.Length; i++) 
 		{
@@ -158,169 +316,6 @@ public class GameController : MonoBehaviour {
 				break;
 			}
 			numFinishPosition.x = numFinishPosition.x + 0.3f;
-		}
-
-	}
-	
-	// Update is called once per frame
-	//movs contains the sequence of moves entered -- q,w,e,r for left and a,s,d,f for right
-	public string movs = "";
-	public float nextClick = 0.0f;
-	public float clickRate = 2.5f;
-	void Update () {
-		string pressTag = "errPress";
-
-		// Get mouse input
-		if (Input.GetMouseButton (0)) {
-			Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
-			RaycastHit hit;
-			if (Physics.Raycast (ray, out hit)) {
-				string hitTag = hit.transform.tag;
-				// Handle click on the control panel icons
-				if ((hitTag == "left50") && (Time.time > nextClick)) {
-					movs = movs + "q";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "left10") && (Time.time > nextClick)) {
-					movs = movs + "w";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "left05") && (Time.time > nextClick)) {
-					movs = movs + "e";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "left01") && (Time.time > nextClick)) {
-					movs = movs + "r";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "right01") && (Time.time > nextClick)) {
-					movs = movs + "a";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "right05") && (Time.time > nextClick)) {
-					movs = movs + "s";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "right10") && (Time.time > nextClick)) {
-					movs = movs + "d";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "right50") && (Time.time > nextClick)) {
-					movs = movs + "f";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-
-				// Handle click on the actionList
-				if ((hitTag == "action01") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 1);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action02") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 2);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action03") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 3);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action04") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 4);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action05") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 5);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action06") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 6);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action07") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 7);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action08") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 8);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action09") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 9);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action10") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 10);
-					EnqueueToActionList (movs);
-				}
-
-				// Enter play mode -- Click on Play button
-				if ((hitTag == "butPlay") && (Time.time > nextClick)) {
-					nextClick = Time.time + clickRate;
-					currPoint = randStart;
-					// Update Play-button
-					pressTag = "pressdPlay";
-					Vector3 pressPosition = new Vector3 (pressPlayValues.x, pressPlayValues.y, pressPlayValues.z);
-					Quaternion pressRotation = Quaternion.identity;
-					GameObject pressButton = Instantiate (pressPlay, pressPosition, pressRotation) as GameObject;
-					pressButton.gameObject.tag = pressTag;
-					// Update Stop-button -- theoretically there should be only one item
-					// tagged pressdStop, but search for multiple entries just in case
-					GameObject[] prevList;
-					prevList = GameObject.FindGameObjectsWithTag ("pressdStop");
-					for (int i = 0; i < prevList.Length; i++){
-						Destroy (prevList[i]);
-					}
-					print (movs);
-					MoveRobot (movs);
-				}
-				// Stop play mode -- Click on Stop button
-				if ((hitTag == "butStop") && (Time.time > nextClick)) {
-					nextClick = Time.time + clickRate;
-					// Update Stop-button
-					pressTag = "pressdStop";
-					Vector3 pressPosition = new Vector3 (pressStopValues.x, pressStopValues.y, pressStopValues.z);
-					Quaternion pressRotation = Quaternion.identity;
-					GameObject pressButton = Instantiate (pressStop, pressPosition, pressRotation) as GameObject;
-					pressButton.gameObject.tag = pressTag;
-					// Update Play-button -- theoretically there should be only one item
-					// tagged pressdPlay, but search for multiple entries just in case
-					GameObject[] prevList;
-					prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
-					for (int i = 0; i < prevList.Length; i++){
-						Destroy (prevList[i]);
-					}
-
-					// Do something
-				}
-
-			}
 		}
 	}
 
