@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour {
 	public GameObject robot;
 	public GameObject startPoint;
 	public GameObject finishPoint;
+	public GameObject youWin;
 
 	public Vector3 numStartValues;
 	public Vector3 numFinishValues;
@@ -353,6 +354,12 @@ public class GameController : MonoBehaviour {
 					break;
 			}
 			print (currPoint);
+		}
+		if (currPoint == randFinish){
+			Vector3 bravoPosition = new Vector3 (0, 0, 0);
+			Quaternion bravoRotation = Quaternion.identity;
+			Instantiate (youWin, bravoPosition, bravoRotation);
+
 		}
 	}
 
