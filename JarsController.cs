@@ -1,30 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GameController : MonoBehaviour {
+public class JarsController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for gameview initialization
-	public Vector3 robotValues;
-	public Vector3 startValues;
-	public Vector3 finishValues;
+	public Vector3 robotValues; //Default: [0, -6, 4]
+	public Vector3 jarSValues; //Default: [5.5, 1, 0]
+	public Vector3 jarMValues; //Default: [3, 1.3, 0]
+	public Vector3 jarLValues; //Default: [-4, 1.5, 0]
 	public GameObject robot;
-	public GameObject startPoint;
-	public GameObject finishPoint;
+	public GameObject jarS;
+	public GameObject jarM;
+	public GameObject jarL;
 	public GameObject youWin;
-
-	public Vector3 numStartValues;
-	public Vector3 numFinishValues;
-	public GameObject numOne;
-	public GameObject numTwo;
-	public GameObject numThree;
-	public GameObject numFour;
-	public GameObject numFive;
-	public GameObject numSix;
-	public GameObject numSeven;
-	public GameObject numEight;
-	public GameObject numNine;
-	public GameObject numZero;
 
 	// GameObject and Vector3 variables to be used
 	// for actionList initialization and updates
@@ -32,37 +21,27 @@ public class GameController : MonoBehaviour {
 	public Vector3 pressPlayValues; // Default: [-8, -5, 0]
 	public Vector3 pressStopValues; // Default: [-9, -5, 0]
 
-	public GameObject listBk50;
-	public GameObject listBk10;
-	public GameObject listBk05;
-	public GameObject listBk01;
-	public GameObject listFw01;
-	public GameObject listFw05;
-	public GameObject listFw10;
-	public GameObject listFw50;
+	public GameObject listPickS;
+	public GameObject listPickM;
+	public GameObject listPickL;
+	public GameObject listReleaseJar;
+	public GameObject listFillJar;
+	public GameObject listEmptyJar;
+	public GameObject listPourS;
+	public GameObject listPourM;
+	public GameObject listPourL;
+	public GameObject listSinkOn;
+	public GameObject listSinkOff;
 	public GameObject pressPlay;
 	public GameObject pressStop;
 
-	// Int variables containing the start, finish and current points of the robot
-	public int randStart;
-	public int randFinish;
-	public int currPoint;
-
 	// Initialization
-	// Generally the maximum startValue and finishValue shall be equal by value
-	// In the case where |startValue| = |finishValue| = 6.5, we will display numbers in [0,65] and
-	// startPoint ~ [1,15], finishPoint ~ [40,65]
 	void Start () {
-		// Calculation of start and finish values
-		randStart = Random.Range(0, 15);
-		randFinish = Random.Range(40, 65);
-		currPoint = randStart;
-		// Initialize robot and start-finish lines
-		InitializeRobot (randStart, currPoint, randFinish);
+		InitializeJars ();
 	}
 	
 	// Update is called once per frame
-	// movs contains the sequence of moves entered -- q,w,e,r for left and a,s,d,f for right
+	// movs contains the sequence of moves entered -- from left to right q,w,e,r,t,y,a,s,d,f,g
 	public string movs = "";
 	public float nextClick = 0.0f;
 	public float clickRate = 0.25f;
@@ -76,43 +55,58 @@ public class GameController : MonoBehaviour {
 			if (Physics.Raycast (ray, out hit)) {
 				string hitTag = hit.transform.tag;
 				// Handle click on the control panel icons -- to add actions on the actionList
-				if ((hitTag == "left50") && (Time.time > nextClick)) {
+				if ((hitTag == "picksmall") && (Time.time > nextClick)) {
 					movs = movs + "q";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "left10") && (Time.time > nextClick)) {
+				if ((hitTag == "pickmedium") && (Time.time > nextClick)) {
 					movs = movs + "w";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "left05") && (Time.time > nextClick)) {
+				if ((hitTag == "picklarge") && (Time.time > nextClick)) {
 					movs = movs + "e";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "left01") && (Time.time > nextClick)) {
+				if ((hitTag == "jarrelease") && (Time.time > nextClick)) {
 					movs = movs + "r";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "right01") && (Time.time > nextClick)) {
+				if ((hitTag == "jarfill") && (Time.time > nextClick)) {
+					movs = movs + "t";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "jarempty") && (Time.time > nextClick)) {
+					movs = movs + "y";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "pourtosmall") && (Time.time > nextClick)) {
 					movs = movs + "a";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "right05") && (Time.time > nextClick)) {
+				if ((hitTag == "pourtomedium") && (Time.time > nextClick)) {
 					movs = movs + "s";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "right10") && (Time.time > nextClick)) {
+				if ((hitTag == "pourtolarge") && (Time.time > nextClick)) {
 					movs = movs + "d";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
-				if ((hitTag == "right50") && (Time.time > nextClick)) {
+				if ((hitTag == "sinkon") && (Time.time > nextClick)) {
 					movs = movs + "f";
+					nextClick = Time.time + clickRate;
+					EnqueueToActionList (movs);
+				}
+				if ((hitTag == "sinkoff") && (Time.time > nextClick)) {
+					movs = movs + "g";
 					nextClick = Time.time + clickRate;
 					EnqueueToActionList (movs);
 				}
@@ -173,7 +167,7 @@ public class GameController : MonoBehaviour {
 				// Enter play mode -- click on Play button
 				if ((hitTag == "butPlay") && (Time.time > nextClick)) {
 					nextClick = Time.time + clickRate;
-					currPoint = randStart;
+					//currPoint = randStart;
 					// Update Play-button
 					pressTag = "pressdPlay";
 					Vector3 pressPosition = new Vector3 (pressPlayValues.x, pressPlayValues.y, pressPlayValues.z);
@@ -188,7 +182,7 @@ public class GameController : MonoBehaviour {
 						Destroy (prevList[i]);
 					}
 					print (movs);
-					MoveRobot (movs);
+					//MoveRobot (movs);
 				}
 				// Stop play mode -- click on Stop button
 				if ((hitTag == "butStop") && (Time.time > nextClick)) {
@@ -206,166 +200,30 @@ public class GameController : MonoBehaviour {
 					for (int i = 0; i < prevList.Length; i++){
 						Destroy (prevList[i]);
 					}
-					// Re-initialize robot and start-finish lines
-					InitializeRobot (randStart, randStart, randFinish);
+					// Re-initialize robot and jars
+					InitializeJars ();
 				}
-
 			}
 		}
 	}
 
-	// Initialize robot and start-finish lines
-	void InitializeRobot (int randStart, int currPoint, int randFinish) {
-		// Initialize poisition-rotation for the lines and the robot
-		Vector3 startPosition = new Vector3 ((-startValues.x+randStart/10), startValues.y, startValues.z);
-		Vector3 robotStart = new Vector3 (startPosition.x, robotValues.y, robotValues.z);
-		Vector3 finishPosition = new Vector3 ((randFinish/10), finishValues.y, finishValues.z);
-		Quaternion startRotation = Quaternion.identity;
+	// Initialize robot and jars
+	void InitializeJars () {
+		// Initialize poisition-rotation for the robot and the jars
+		Vector3 robotPosition = new Vector3 (robotValues.x, robotValues.y, robotValues.z);
+		Vector3 jarSPosition = new Vector3 (jarSValues.x, jarSValues.y, jarSValues.z);
+		Vector3 jarMPosition = new Vector3 (jarMValues.x, jarMValues.y, jarMValues.z);
+		Vector3 jarLPosition = new Vector3 (jarLValues.x, jarLValues.y, jarLValues.z);
 		Quaternion robotRotation = Quaternion.identity;
-		Quaternion finishRotation = Quaternion.identity;
+		Quaternion jarSRotation = Quaternion.identity;
+		Quaternion jarMRotation = Quaternion.identity;
+		Quaternion jarLRotation = Quaternion.identity;
 
 		// Instantiate poisition-rotation for the start-finish lines and the robot
-		Instantiate (robot, robotStart, robotRotation);
-		Instantiate (startPoint, startPosition, startRotation);
-		Instantiate (finishPoint, finishPosition, finishRotation);
-
-		// Intantiate poisition-rotation for the numbers at the start -- Convert randStart to string
-		string strStart = randStart.ToString();
-		Vector3 numStartPosition = new Vector3 ((-numStartValues.x+randStart/10), numStartValues.y, numStartValues.z);
-		Quaternion numStartRotation = Quaternion.identity;
-
-		// Check the digits one-by-one and instantiate the corresponding number
-		for (int i = 0; i < strStart.Length; i++) 
-		{
-			char strCurr = strStart [i];
-			switch (strCurr)
-			{
-			case '1':
-				Instantiate(numOne, numStartPosition, numStartRotation);
-				break;
-			case '2':
-				Instantiate(numTwo, numStartPosition, numStartRotation);
-				break;
-			case '3':
-				Instantiate(numThree, numStartPosition, numStartRotation);
-				break;
-			case '4':
-				Instantiate(numFour, numStartPosition, numStartRotation);
-				break;
-			case '5':
-				Instantiate(numFive, numStartPosition, numStartRotation);
-				break;
-			case '6':
-				Instantiate(numSix, numStartPosition, numStartRotation);
-				break;
-			case '7':
-				Instantiate(numSeven, numStartPosition, numStartRotation);
-				break;
-			case '8':
-				Instantiate(numEight, numStartPosition, numStartRotation);
-				break;
-			case '9':
-				Instantiate(numNine, numStartPosition, numStartRotation);
-				break;
-			case '0':
-				Instantiate(numZero, numStartPosition, numStartRotation);
-				break;
-			}
-			numStartPosition.x = numStartPosition.x + 0.3f;
-		}
-
-		// Intantiate poisition-rotation for the numbers at the finish -- Convert randFinish to string
-		string strFinish = randFinish.ToString();
-		Vector3 numFinishPosition = new Vector3 ((randFinish/10), numFinishValues.y, numFinishValues.z);
-		Quaternion numFinishRotation = Quaternion.identity;
-
-		// Check the digits one-by-one and instantiate the corresponding number
-		for (int i = 0; i < strFinish.Length; i++) 
-		{
-			char strCurr = strFinish [i];
-			switch (strCurr)
-			{
-			case '1':
-				Instantiate(numOne, numFinishPosition, numFinishRotation);
-				break;
-			case '2':
-				Instantiate(numTwo, numFinishPosition, numFinishRotation);
-				break;
-			case '3':
-				Instantiate(numThree, numFinishPosition, numFinishRotation);
-				break;
-			case '4':
-				Instantiate(numFour, numFinishPosition, numFinishRotation);
-				break;
-			case '5':
-				Instantiate(numFive, numFinishPosition, numFinishRotation);
-				break;
-			case '6':
-				Instantiate(numSix, numFinishPosition, numFinishRotation);
-				break;
-			case '7':
-				Instantiate(numSeven, numFinishPosition, numFinishRotation);
-				break;
-			case '8':
-				Instantiate(numEight, numFinishPosition, numFinishRotation);
-				break;
-			case '9':
-				Instantiate(numNine, numFinishPosition, numFinishRotation);
-				break;
-			case '0':
-				Instantiate(numZero, numFinishPosition, numFinishRotation);
-				break;
-			}
-			numFinishPosition.x = numFinishPosition.x + 0.3f;
-		}
-	}
-
-	// Calculation of the robot's new position according to movs
-	void MoveRobot (string movs) {
-		char nextMov;
-		// Variables holding current point position-rotation to be used for instantiation -- Convert currPoint to string
-		string currStr = currPoint.ToString();
-		Vector3 currPosition = new Vector3 ((-startValues.x+currPoint/10), startValues.y, startValues.z);
-		Quaternion currRotation = Quaternion.identity;
-
-		for (int i = 0; i < movs.Length; i++) 
-		{
-			nextMov = movs[i];
-			switch(nextMov)
-			{
-				case 'q':
-					currPoint = currPoint - 50;
-					break;
-				case 'w':
-					currPoint = currPoint - 10;
-					break;
-				case 'e':
-					currPoint = currPoint - 5;
-					break;
-				case 'r':
-					currPoint = currPoint - 1;
-					break;
-				case 'a':
-					currPoint = currPoint + 1;
-					break;
-				case 's':
-					currPoint = currPoint + 5;
-					break;
-				case 'd':
-					currPoint = currPoint + 10;
-					break;
-				case 'f':
-					currPoint = currPoint + 50;
-					break;
-			}
-			print (currPoint);
-		}
-		if (currPoint == randFinish){
-			Vector3 bravoPosition = new Vector3 (0, 0, 0);
-			Quaternion bravoRotation = Quaternion.identity;
-			Instantiate (youWin, bravoPosition, bravoRotation);
-
-		}
+		Instantiate (robot, robotPosition, robotRotation);
+		Instantiate (jarS, jarSPosition, jarSRotation);
+		Instantiate (jarM, jarMPosition, jarMRotation);
+		Instantiate (jarL, jarLPosition, jarLRotation);
 	}
 
 	// Enqueue actions to the actionList
@@ -465,51 +323,66 @@ public class GameController : MonoBehaviour {
 			case 9:
 				nextTag = "action10";
 				break;
-			//default:
-			//	print("Unexpected error!");
-			//	nextTag = "errorList";
-			//	break;
+				//default:
+				//	print("Unexpected error!");
+				//	nextTag = "errorList";
+				//	break;
 			}
 
 			// Get the next move from movs string and add it to the action list
 			switch (nextMov) {
 			case 'q':
-				actionList[i] = Instantiate(listBk50, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listPickS, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'w':
-				actionList[i] = Instantiate(listBk10, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listPickM, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'e':
-				actionList[i] = Instantiate(listBk05, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listPickL, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'r':
-				actionList[i] = Instantiate(listBk01, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listReleaseJar, listPosition, listRotation) as GameObject;
+				actionList[i].gameObject.tag = nextTag;
+				actionList[i].gameObject.name = nextTag;
+				break;
+			case 't':
+				actionList[i] = Instantiate(listFillJar, listPosition, listRotation) as GameObject;
+				actionList[i].gameObject.tag = nextTag;
+				actionList[i].gameObject.name = nextTag;
+				break;
+			case 'y':
+				actionList[i] = Instantiate(listEmptyJar, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'a':
-				actionList[i] = Instantiate(listFw01, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listPourS, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 's':
-				actionList[i] = Instantiate(listFw05, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listPourM, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'd':
-				actionList[i] = Instantiate(listFw10, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listPourL, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
 			case 'f':
-				actionList[i] = Instantiate(listFw50, listPosition, listRotation) as GameObject;
+				actionList[i] = Instantiate(listSinkOn, listPosition, listRotation) as GameObject;
+				actionList[i].gameObject.tag = nextTag;
+				actionList[i].gameObject.name = nextTag;
+				break;
+			case 'g':
+				actionList[i] = Instantiate(listSinkOff, listPosition, listRotation) as GameObject;
 				actionList[i].gameObject.tag = nextTag;
 				actionList[i].gameObject.name = nextTag;
 				break;
@@ -548,67 +421,4 @@ public class GameController : MonoBehaviour {
 		}
 		return (newMov);
 	}
-	
-	/*
-	 // Update -- keyboard input
-	// Get keyboard input -- Run when user hits 'return'/'enter'
-		if((Input.GetKey ("q")) && (Time.time > nextClick)){
-			movs = movs + "q";
-			nextClick = Time.time + clickRate;
-			print (movs);
-		}
-		if((Input.GetKey ("w")) && (Time.time > nextClick)){
-			movs = movs + "w";
-			nextClick = Time.time + clickRate;
-			print (movs);
-		}
-		if((Input.GetKey ("e")) && (Time.time > nextClick)){
-			movs = movs + "e";
-			nextClick = Time.time + clickRate;
-			print (movs);
-		}
-		if((Input.GetKey ("a")) && (Time.time > nextClick)){
-			movs = movs + "a";
-			nextClick = Time.time + clickRate;
-			print (movs);
-		}
-		if((Input.GetKey ("s")) && (Time.time > nextClick)){
-			movs = movs + "s";
-			nextClick = Time.time + clickRate;
-			print (movs);
-		}
-		if((Input.GetKey ("d")) && (Time.time > nextClick)){
-			movs = movs + "d";
-			nextClick = Time.time + clickRate;
-			print (movs);
-		}
-		if ((Input.GetKey ("z")) && (Time.time > nextClick)) {
-			PlayRobot(movs);
-		}
-		*/
-
-
-	/*
-	// Delete the first action from the actionList using keyboard input
-	if ((Input.GetKey ("z")) && (Time.time > nextClick)) {
-		nextClick = Time.time + clickRate;
-		print ("DELETE ACTION01 BITCH!");
-		GameObject[] prevList;
-		prevList = GameObject.FindGameObjectsWithTag ("action01");
-		for (int i = 0; i < prevList.Length; i++){
-			Destroy (prevList[i]);
-		}
-		// Shift every other action by one
-		char nextMov;
-		string newMov = "";
-		for (int i = 1; i < movs.Length; i++) {
-			nextMov = movs[i];
-			newMov = newMov + nextMov;
-		}
-		movs = newMov;
-		EnqueueToActionList (movs);
-	}
-	*/
-	
-
 }

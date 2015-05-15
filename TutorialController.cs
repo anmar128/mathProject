@@ -15,9 +15,9 @@ public class TutorialController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for actionList initialization and updates
-	public Vector3 listStartValues;
-	public Vector3 pressPlayValues;
-	public Vector3 pressStopValues;
+	public Vector3 listStartValues; //Default: [-8.5,  3.5, 0]
+	public Vector3 pressPlayValues; // Default: [-8, -5, 0]
+	public Vector3 pressStopValues; // Default: [-9, -5, 0]
 
 	public GameObject listMoveLeft;
 	public GameObject listMoveRight;
