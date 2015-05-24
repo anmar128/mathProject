@@ -45,9 +45,9 @@ public class GameController : MonoBehaviour {
 	public GameObject pressStop;
 
 	// Int variables containing the start, finish and current points of the robot
-	public int randStart;
-	public int randFinish;
-	public int currPoint;
+	private int randStart;
+	private int randFinish;
+	private int currPoint;
 	public float xMin; // Default: -6.5
 	public float xMax; // Default: 6.5
 
@@ -55,19 +55,23 @@ public class GameController : MonoBehaviour {
 	// Generally the maximum startValue and finishValue shall be equal, x-value-wise
 	// In the case where |startValue| = |finishValue| = 6.5, we will display numbers in [0,65] and
 	// startPoint ~ [1,15], finishPoint ~ [40,65]
+	private GameObject robotCl;
+	private Rigidbody robotRb;
 	void Start () {
 		// Calculation of start and finish values
 		randStart = Random.Range(0, 15);
 		randFinish = Random.Range(40, 65);
 		currPoint = randStart;
+		// Get the rigidbody component off the robot gameObject
+		//robotRb = robot.GetComponent<Rigidbody>();
 		// Initialize robot and start-finish lines
 		InitializeRobot (randStart, currPoint, randFinish);
 	}
 	
 	// Update is called once per frame
 	// movs contains the sequence of moves entered -- q,w,e,r for left and a,s,d,f for right
-	public string movs = "";
-	public float nextClick = 0.0f;
+	private string movs = "";
+	private float nextClick = 0.0f;
 	public float clickRate = 0.25f;
 	void Update () {
 		string pressTag = "errPress";
@@ -234,7 +238,8 @@ public class GameController : MonoBehaviour {
 		Quaternion finishRotation = Quaternion.identity;
 
 		// Instantiate poisition-rotation for the start-finish lines and the robot
-		Instantiate (robot, robotStart, robotRotation);
+		//Instantiate (robot, robotStart, robotRotation);
+		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
 		Instantiate (startPoint, startPosition, startRotation);
 		Instantiate (finishPoint, finishPosition, finishRotation);
 
@@ -332,6 +337,7 @@ public class GameController : MonoBehaviour {
 	// Calculation of the robot's new position according to movs
 	// Defined as a coroutine so Wait can be used
 	IEnumerator MoveRobot (string movs) {
+		int prevPoint;
 		char nextMov;
 		string breakTag = "line";
 		// Variables holding current point position-rotation to be used for instantiation -- Convert currPoint to string
@@ -341,6 +347,7 @@ public class GameController : MonoBehaviour {
 
 		for (int i = 0; i < movs.Length; i++) 
 		{
+			prevPoint = currPoint;
 			nextMov = movs[i];
 			switch(nextMov)
 			{
@@ -372,6 +379,7 @@ public class GameController : MonoBehaviour {
 			print (currPoint);
 			// Calculate new currPosition.x for line instantiation
 			currPosition.x = ValueX (currPoint);
+			JumpRobot (prevPoint, currPoint);
 			yield return new WaitForSeconds (1f);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
@@ -391,6 +399,28 @@ public class GameController : MonoBehaviour {
 		float actPos;
 		actPos = xMin + currPos/5f;
 		return (actPos);
+	}
+
+	// Display the movement from one point to another
+	void JumpRobot (int prevPoint, int currPoint) {
+		float speed = 1f;
+		float midPoint = prevPoint + (currPoint - prevPoint) / 2;
+		//float midPos = ValueX(midPoint);
+
+		robotRb = robotCl.GetComponent<Rigidbody>();
+		// Visualize the jump, part 1 -- Ascending
+		if (robotRb.transform.position.x < midPoint) {
+			robotRb.velocity = new Vector3(speed, speed, 0);
+		}
+		if (robotRb.transform.position.x > midPoint) {
+			robotRb.velocity = new Vector3(-speed, -speed, 0);
+		}
+		// Visualize the jump, part 2 -- Stop at the highest point
+		if (robotRb.transform.position.x == midPoint) {
+			robotRb.velocity = new Vector3(0, 0, 0);
+		}
+		// Visualize the jump, part 3 -- Descending
+		// ADDSTUFF
 	}
 
 
