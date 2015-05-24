@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour {
 	public GameObject robot;
 	public GameObject startPoint;
 	public GameObject finishPoint;
+	public GameObject breakPoint;
 	public GameObject youWin;
 
 	public Vector3 numStartValues;
@@ -47,9 +48,11 @@ public class GameController : MonoBehaviour {
 	public int randStart;
 	public int randFinish;
 	public int currPoint;
+	public float xMin; // Default: -6.5
+	public float xMax; // Default: 6.5
 
 	// Initialization
-	// Generally the maximum startValue and finishValue shall be equal by value
+	// Generally the maximum startValue and finishValue shall be equal, x-value-wise
 	// In the case where |startValue| = |finishValue| = 6.5, we will display numbers in [0,65] and
 	// startPoint ~ [1,15], finishPoint ~ [40,65]
 	void Start () {
@@ -187,6 +190,12 @@ public class GameController : MonoBehaviour {
 					for (int i = 0; i < prevList.Length; i++){
 						Destroy (prevList[i]);
 					}
+					// Delete x-value lines from previous plays
+					prevList = GameObject.FindGameObjectsWithTag ("line");
+					for (int i = 0; i < prevList.Length; i++){
+						Destroy (prevList[i]);
+					}
+
 					print (movs);
 					MoveRobot (movs);
 				}
@@ -217,9 +226,9 @@ public class GameController : MonoBehaviour {
 	// Initialize robot and start-finish lines
 	void InitializeRobot (int randStart, int currPoint, int randFinish) {
 		// Initialize poisition-rotation for the lines and the robot
-		Vector3 startPosition = new Vector3 ((-startValues.x+randStart/10), startValues.y, startValues.z);
+		Vector3 startPosition = new Vector3 (ValueX(randStart), startValues.y, startValues.z);
 		Vector3 robotStart = new Vector3 (startPosition.x, robotValues.y, robotValues.z);
-		Vector3 finishPosition = new Vector3 ((randFinish/10), finishValues.y, finishValues.z);
+		Vector3 finishPosition = new Vector3 (ValueX(randFinish), finishValues.y, finishValues.z);
 		Quaternion startRotation = Quaternion.identity;
 		Quaternion robotRotation = Quaternion.identity;
 		Quaternion finishRotation = Quaternion.identity;
@@ -231,7 +240,7 @@ public class GameController : MonoBehaviour {
 
 		// Intantiate poisition-rotation for the numbers at the start -- Convert randStart to string
 		string strStart = randStart.ToString();
-		Vector3 numStartPosition = new Vector3 ((-numStartValues.x+randStart/10), numStartValues.y, numStartValues.z);
+		Vector3 numStartPosition = new Vector3 (ValueX(randStart), numStartValues.y, numStartValues.z);
 		Quaternion numStartRotation = Quaternion.identity;
 
 		// Check the digits one-by-one and instantiate the corresponding number
@@ -276,7 +285,7 @@ public class GameController : MonoBehaviour {
 
 		// Intantiate poisition-rotation for the numbers at the finish -- Convert randFinish to string
 		string strFinish = randFinish.ToString();
-		Vector3 numFinishPosition = new Vector3 ((randFinish/10), numFinishValues.y, numFinishValues.z);
+		Vector3 numFinishPosition = new Vector3 (ValueX(randFinish), numFinishValues.y, numFinishValues.z);
 		Quaternion numFinishRotation = Quaternion.identity;
 
 		// Check the digits one-by-one and instantiate the corresponding number
@@ -323,8 +332,9 @@ public class GameController : MonoBehaviour {
 	// Calculation of the robot's new position according to movs
 	void MoveRobot (string movs) {
 		char nextMov;
+		string breakTag = "line";
 		// Variables holding current point position-rotation to be used for instantiation -- Convert currPoint to string
-		string currStr = currPoint.ToString();
+		//string currStr = currPoint.ToString();
 		Vector3 currPosition = new Vector3 ((-startValues.x+currPoint/10), startValues.y, startValues.z);
 		Quaternion currRotation = Quaternion.identity;
 
@@ -359,6 +369,10 @@ public class GameController : MonoBehaviour {
 					break;
 			}
 			print (currPoint);
+			// ADDSTUFF -- calculate new currPosition.x for line instantiation
+			currPosition.x = ValueX (currPoint);
+			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
+			breakLine.gameObject.tag = breakTag;
 		}
 		if (currPoint == randFinish){
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
@@ -366,6 +380,15 @@ public class GameController : MonoBehaviour {
 			Instantiate (youWin, bravoPosition, bravoRotation);
 
 		}
+	}
+
+	// Calculate the x-value of the robot or the start-finish lines
+	// given the actual theoritical value
+	// |startValue| = |finishValue| = 6.5, display numbers in [0,65]
+	float ValueX (int currPos) {
+		float actPos;
+		actPos = xMin + currPos/5f;
+		return (actPos);
 	}
 
 	// Enqueue actions to the actionList

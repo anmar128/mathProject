@@ -5,11 +5,13 @@ public class TutorialController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for gameview initialization
-	public Vector3 robotValues;
+	public Vector3 robotValues; // Default: [0,  0.5, 4]
 	public Vector3 startValues;
-	public Vector3 obstacleValues;
+	public Vector3 obstacleValues; // Default: [0,  -1, 0]
+	public Vector3 appleValues;
 	public GameObject robot;
 	public GameObject obstacle;
+	public GameObject apple;
 	public GameObject youWin;
 	public Vector3 numStartValues;
 
@@ -35,17 +37,22 @@ public class TutorialController : MonoBehaviour {
 	public int randStart;
 	public int randObstacle;
 	public int currPoint;
+	public int holding;
+	public int basketed;
 
 	// Initialization
 	// Generally the robot will start from a random point (block) on the left of the screen
 	// Counting begins from the first complete block, so the whole image contains 19 blocks
 	// with the tree being on the 16th and the obstacle between 10-12
 	// Blocks in scene x-values: 1 ~ 6.4 | 2 ~ 5.7 | 3 ~ 5 | 4 ~ 4.3 | etc
+	// Apples shall be instantiated in blocks 15, 16, 17
 	void Start () {
 		// Calculation of start and finish values
 		randStart = Random.Range(5, 9);
 		randObstacle = Random.Range(10, 12);
 		currPoint = randStart;
+		holding = 0;
+		basketed = 0;
 		// Initialize robot and start-finish lines
 		InitializeTutorial (randStart, currPoint, randObstacle);
 	
@@ -178,7 +185,7 @@ public class TutorialController : MonoBehaviour {
 						Destroy (prevList[i]);
 					}
 					print (movs);
-					//MoveRobot (movs);
+					//MoveRobot (currPoint, randObstacle, movs);
 				}
 				// Stop play mode -- click on Stop button
 				// ADD: Clear previous scene-items -- on GameController of ExcSeven too
@@ -217,9 +224,27 @@ public class TutorialController : MonoBehaviour {
 		Quaternion robotRotation = Quaternion.identity;
 		Quaternion obstacleRotation = Quaternion.identity;
 
+		// Initialize and instantiate apples
+		for (int i = 15; i <= 17; i++) {
+			float appleStart = (i - 1)*0.7f - 6.4f;
+			float randXNoise = Random.Range (-0.1f, 0.1f);
+			float randYNoise = Random.Range (-0.2f, 0.2f);
+			Vector3 applePosition = new Vector3 (appleStart + randXNoise, appleValues.y + randYNoise, appleValues.z);
+			Quaternion appleRotation = Quaternion.identity;
+			Instantiate (apple, applePosition, appleRotation);
+		}
+
+
 		// Instantiate poisition-rotation for the start-finish lines and the robot
 		Instantiate (robot, robotStart, robotRotation);
 		Instantiate (obstacle, obstaclePosition, obstacleRotation);
+	}
+
+	// Calculation of the robot's new position-action according to movs
+	// Blocks in scene x-values: 1 ~ 6.4 | 2 ~ 5.7 | 3 ~ 5 | 4 ~ 4.3 | etc
+	// Tree trunk on block 16, branches from 14 to 18
+	void MoveRobot (int currPoint, int randObstacle, string movs) {
+		
 	}
 
 	// Enqueue actions to the actionList
@@ -401,6 +426,66 @@ public class TutorialController : MonoBehaviour {
 			}
 		}
 		return (newMov);
+	}
+
+	// Use movs to find the robot's next moves
+	void HandleRobot (int randStart, string movs) {
+		char nextMov;
+
+		for (int i = 0; i < movs.Length; i++) 
+		{
+			nextMov = movs[i];
+			switch(nextMov)
+			{
+			case 'q':
+				// Move left
+				currPoint = currPoint - 1;
+				break;
+			case 'w':
+				// Move right
+				currPoint = currPoint + 1;
+				break;
+			case 'e':
+				// Jump
+				currPoint = currPoint + 2;
+				break;
+			case 'r':
+				// Pick apple
+				if ((currPoint == 15)||(currPoint ==16)||(currPoint ==17)) {
+					// ADDSTUFF -- delete/ move apple from tree
+					holding = 1;
+				}
+				break;
+			case 't':
+				// Not pick apple
+				holding = 0;
+				break;
+			case 'y':
+				// Throw away apple
+				if (holding == 1) {
+					holding = 0;
+					// ADDSTUFF -- instantiate apple copy on the ground
+				}
+				break;
+			case 'u':
+				// Put apple on basket
+				if (holding == 1) {
+					holding = 0;
+					basketed = basketed + 1;
+					// ADDSTUFF -- instantiate apple copy on the basket
+				}
+				break;
+			case 'i':
+				// Empty basket
+				currPoint = currPoint + 50;
+				if (basketed > 0) {
+					basketed = 0;
+					// ADDSTUFF -- instantiate apples around the basket
+				}
+				break;
+			}
+			print (currPoint);
+		}
 	}
 
 }
