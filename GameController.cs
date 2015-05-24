@@ -197,7 +197,7 @@ public class GameController : MonoBehaviour {
 					}
 
 					print (movs);
-					MoveRobot (movs);
+					StartCoroutine(MoveRobot(movs));
 				}
 				// Stop play mode -- click on Stop button
 				if ((hitTag == "butStop") && (Time.time > nextClick)) {
@@ -330,7 +330,8 @@ public class GameController : MonoBehaviour {
 	}
 
 	// Calculation of the robot's new position according to movs
-	void MoveRobot (string movs) {
+	// Defined as a coroutine so Wait can be used
+	IEnumerator MoveRobot (string movs) {
 		char nextMov;
 		string breakTag = "line";
 		// Variables holding current point position-rotation to be used for instantiation -- Convert currPoint to string
@@ -369,8 +370,9 @@ public class GameController : MonoBehaviour {
 					break;
 			}
 			print (currPoint);
-			// ADDSTUFF -- calculate new currPosition.x for line instantiation
+			// Calculate new currPosition.x for line instantiation
 			currPosition.x = ValueX (currPoint);
+			yield return new WaitForSeconds (1f);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
 		}
@@ -390,6 +392,7 @@ public class GameController : MonoBehaviour {
 		actPos = xMin + currPos/5f;
 		return (actPos);
 	}
+
 
 	// Enqueue actions to the actionList
 	void EnqueueToActionList(string movs){
