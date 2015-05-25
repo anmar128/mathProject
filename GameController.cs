@@ -199,7 +199,7 @@ public class GameController : MonoBehaviour {
 					for (int i = 0; i < prevList.Length; i++){
 						Destroy (prevList[i]);
 					}
-
+					// Actually enter play mode
 					print (movs);
 					StartCoroutine(MoveRobot(movs));
 				}
@@ -212,6 +212,16 @@ public class GameController : MonoBehaviour {
 					Quaternion pressRotation = Quaternion.identity;
 					GameObject pressButton = Instantiate (pressStop, pressPosition, pressRotation) as GameObject;
 					pressButton.gameObject.tag = pressTag;
+					// ADDSTUFF -- Re-initialize robot without actually creating another copy
+					// Re-initialize robot and start-finish lines
+					// Must re-initialize only if there is at least one pressdPlay-tagged object
+					/*GameObject[] prevList;
+					prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+					if (prevList.Length > 0) {
+						//robotCl.transform.Translate ((ValueX(currPoint)-ValueX(randStart)), 0, 0, Space.Self);
+						robotCl.transform.Translate ((ValueX(currPoint-randStart)), 0, 0, Space.Self);
+					}
+					*/
 					// Update Play-button -- in theory there should be only one item
 					// tagged pressdPlay, but search for multiple entries just in case
 					GameObject[] prevList;
@@ -229,6 +239,20 @@ public class GameController : MonoBehaviour {
 
 	// Initialize robot and start-finish lines
 	void InitializeRobot (int randStart, int currPoint, int randFinish) {
+		string robotTag = "player";
+
+		// Delete robot copies from previous plays
+		// Must delete only if there is at least one pressdPlay-tagged object
+		GameObject[] prevList;
+		prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+		if (prevList.Length > 0) {
+			GameObject[] prevList2;
+			prevList2 = GameObject.FindGameObjectsWithTag ("player");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+		}
+
 		// Initialize poisition-rotation for the lines and the robot
 		Vector3 startPosition = new Vector3 (ValueX(randStart), startValues.y, startValues.z);
 		Vector3 robotStart = new Vector3 (startPosition.x, robotValues.y, robotValues.z);
@@ -239,9 +263,10 @@ public class GameController : MonoBehaviour {
 
 		// Instantiate poisition-rotation for the start-finish lines and the robot
 		//Instantiate (robot, robotStart, robotRotation);
-		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
 		Instantiate (startPoint, startPosition, startRotation);
 		Instantiate (finishPoint, finishPosition, finishRotation);
+		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
+		robotCl.gameObject.tag = robotTag;
 
 		// Intantiate poisition-rotation for the numbers at the start -- Convert randStart to string
 		string strStart = randStart.ToString();
@@ -409,18 +434,24 @@ public class GameController : MonoBehaviour {
 
 		robotRb = robotCl.GetComponent<Rigidbody>();
 		// Visualize the jump, part 1 -- Ascending
-		if (robotRb.transform.position.x < midPoint) {
-			robotRb.velocity = new Vector3(speed, speed, 0);
+		if (robotCl.transform.position.x < midPoint) {
+			//robotRb.velocity = new Vector3(speed, speed, 0);
+			// Calculate the x-value of the mid-point
+			// ADDSTUFF -- Currently directly moves robot to the mid-point
+			robotCl.transform.Translate (Vector3.right*(currPoint - prevPoint)/10);
 		}
 		if (robotRb.transform.position.x > midPoint) {
-			robotRb.velocity = new Vector3(-speed, -speed, 0);
+			//robotRb.velocity = new Vector3(-speed, -speed, 0);
+			robotCl.transform.Translate (Vector3.right*(prevPoint - currPoint)/10);
 		}
+		/*
 		// Visualize the jump, part 2 -- Stop at the highest point
 		if (robotRb.transform.position.x == midPoint) {
 			robotRb.velocity = new Vector3(0, 0, 0);
 		}
 		// Visualize the jump, part 3 -- Descending
 		// ADDSTUFF
+		*/
 	}
 
 
