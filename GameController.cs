@@ -44,26 +44,33 @@ public class GameController : MonoBehaviour {
 	public GameObject pressPlay;
 	public GameObject pressStop;
 
+	// GameObject and Rigidbody variables to be used for the robot gameplay
+	private GameObject robotCl;
+	private Rigidbody robotRb;
+
 	// Int variables containing the start, finish and current points of the robot
 	private int randStart;
 	private int randFinish;
 	private int currPoint;
+	private int playMode; // Not playing ~ 0, playing ~ 1
+	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
+
+	// Float variables containing the actual x-values of line start, end and speed
 	public float xMin; // Default: -6.5
 	public float xMax; // Default: 6.5
+	public float speed; // Default: 2
 
 	// Initialization
 	// Generally the maximum startValue and finishValue shall be equal, x-value-wise
 	// In the case where |startValue| = |finishValue| = 6.5, we will display numbers in [0,65] and
 	// startPoint ~ [1,15], finishPoint ~ [40,65]
-	private GameObject robotCl;
-	private Rigidbody robotRb;
 	void Start () {
 		// Calculation of start and finish values
 		randStart = Random.Range(0, 15);
 		randFinish = Random.Range(40, 65);
 		currPoint = randStart;
-		// Get the rigidbody component off the robot gameObject
-		//robotRb = robot.GetComponent<Rigidbody>();
+		playMode = 0;
+		jumping = 0;
 		// Initialize robot and start-finish lines
 		InitializeRobot (randStart, currPoint, randFinish);
 	}
@@ -200,6 +207,7 @@ public class GameController : MonoBehaviour {
 						Destroy (prevList[i]);
 					}
 					// Actually enter play mode
+					playMode = 1;
 					print (movs);
 					StartCoroutine(MoveRobot(movs));
 				}
@@ -230,9 +238,17 @@ public class GameController : MonoBehaviour {
 						Destroy (prevList[i]);
 					}
 					// Re-initialize robot and start-finish lines
+					playMode = 0;
 					InitializeRobot (randStart, randStart, randFinish);
 				}
 
+			}
+		}
+
+		// ADDSTUFF -- Real-time gameplay
+		if (playMode == 1) {
+			if (jumping != 0) {
+				print ("Jumpdafukup!");
 			}
 		}
 	}
@@ -267,6 +283,7 @@ public class GameController : MonoBehaviour {
 		Instantiate (finishPoint, finishPosition, finishRotation);
 		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
 		robotCl.gameObject.tag = robotTag;
+		robotRb = robotCl.GetComponent<Rigidbody>();
 
 		// Intantiate poisition-rotation for the numbers at the start -- Convert randStart to string
 		string strStart = randStart.ToString();
@@ -408,6 +425,8 @@ public class GameController : MonoBehaviour {
 			yield return new WaitForSeconds (1f);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
+			// ADDSTUFF -- probably did the jump
+			jumping = 0;
 		}
 		if (currPoint == randFinish){
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
@@ -428,11 +447,10 @@ public class GameController : MonoBehaviour {
 
 	// Display the movement from one point to another
 	void JumpRobot (int prevPoint, int currPoint) {
-		float speed = 1f;
 		float midPoint = prevPoint + (currPoint - prevPoint) / 2;
-		//float midPos = ValueX(midPoint);
+		jumping = 1;
 
-		robotRb = robotCl.GetComponent<Rigidbody>();
+		//robotRb = robotCl.GetComponent<Rigidbody>();
 		// Visualize the jump, part 1 -- Ascending
 		if (robotCl.transform.position.x < midPoint) {
 			//robotRb.velocity = new Vector3(speed, speed, 0);
