@@ -46,14 +46,17 @@ public class GameController : MonoBehaviour {
 
 	// GameObject and Rigidbody variables to be used for the robot gameplay
 	private GameObject robotCl;
-	private Rigidbody robotRb;
+	//private Rigidbody robotRb;
 
 	// Int variables containing the start, finish and current points of the robot
 	private int randStart;
 	private int randFinish;
 	private int currPoint;
+	private int prevPoint;
+	private float midPoint;
 	private int playMode; // Not playing ~ 0, playing ~ 1
 	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
+	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
 
 	// Float variables containing the actual x-values of line start, end and speed
 	public float xMin; // Default: -6.5
@@ -69,8 +72,10 @@ public class GameController : MonoBehaviour {
 		randStart = Random.Range(0, 15);
 		randFinish = Random.Range(40, 65);
 		currPoint = randStart;
+		prevPoint = randStart;
 		playMode = 0;
 		jumping = 0;
+		direction = 0;
 		// Initialize robot and start-finish lines
 		InitializeRobot (randStart, currPoint, randFinish);
 	}
@@ -247,8 +252,33 @@ public class GameController : MonoBehaviour {
 
 		// ADDSTUFF -- Real-time gameplay
 		if (playMode == 1) {
-			if (jumping != 0) {
-				print ("Jumpdafukup!");
+			if (jumping == 1) {
+				if (direction > 0) {
+					print ("Jumpdafukup right!");
+				}
+				if (direction < 0) {
+					print ("Jumpdafukup left!");
+				}
+				JumpRobot (prevPoint, currPoint, direction);
+				if (nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.01f)) {
+					jumping = 2;
+				}
+			}
+			if (jumping == 2) {
+				print ("Hold it!");
+				jumping = 3;
+			}
+			if (jumping == 3) {
+				if (direction > 0) {
+					print ("Get back down right!");
+				}
+				if (direction < 0) {
+					print ("Get back down left!");
+				}
+				JumpRobot (prevPoint, currPoint, direction);
+				if (robotCl.transform.position.x == ValueX(currPoint)) {
+					jumping = 0;
+				}
 			}
 		}
 	}
@@ -283,7 +313,7 @@ public class GameController : MonoBehaviour {
 		Instantiate (finishPoint, finishPosition, finishRotation);
 		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
 		robotCl.gameObject.tag = robotTag;
-		robotRb = robotCl.GetComponent<Rigidbody>();
+		//robotRb = robotCl.GetComponent<Rigidbody>();
 
 		// Intantiate poisition-rotation for the numbers at the start -- Convert randStart to string
 		string strStart = randStart.ToString();
@@ -379,8 +409,8 @@ public class GameController : MonoBehaviour {
 	// Calculation of the robot's new position according to movs
 	// Defined as a coroutine so Wait can be used
 	IEnumerator MoveRobot (string movs) {
-		int prevPoint;
 		char nextMov;
+		float timish;
 		string breakTag = "line";
 		// Variables holding current point position-rotation to be used for instantiation -- Convert currPoint to string
 		//string currStr = currPoint.ToString();
@@ -419,10 +449,20 @@ public class GameController : MonoBehaviour {
 					break;
 			}
 			print (currPoint);
+			midPoint = prevPoint + (currPoint - prevPoint) / 2;
 			// Calculate new currPosition.x for line instantiation
 			currPosition.x = ValueX (currPoint);
-			JumpRobot (prevPoint, currPoint);
-			yield return new WaitForSeconds (1f);
+			// Calculate direction and set jumping
+			if (prevPoint < currPoint) {
+				direction = 1;
+				timish = 1 + (currPoint - prevPoint)/10;
+			} else {
+				direction = -1;
+				timish = 1 + (prevPoint - currPoint)/10;
+			}
+			jumping = 1;
+			JumpRobot (prevPoint, currPoint, direction);
+			yield return new WaitForSeconds (timish);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
 			// ADDSTUFF -- probably did the jump
@@ -439,39 +479,49 @@ public class GameController : MonoBehaviour {
 	// Calculate the x-value of the robot or the start-finish lines
 	// given the actual theoritical value
 	// |startValue| = |finishValue| = 6.5, display numbers in [0,65]
-	float ValueX (int currPos) {
+	float ValueX (float currPos) {
 		float actPos;
 		actPos = xMin + currPos/5f;
 		return (actPos);
 	}
 
-	// Display the movement from one point to another
-	void JumpRobot (int prevPoint, int currPoint) {
-		float midPoint = prevPoint + (currPoint - prevPoint) / 2;
-		jumping = 1;
+	// Check for equality in floats
+	bool nearlyEqual(float a, float b, float epsilon) {
+		float absA = Mathf.Abs(a);
+		float absB = Mathf.Abs(b);
+		float diff = Mathf.Abs(a - b);
 
-		//robotRb = robotCl.GetComponent<Rigidbody>();
-		// Visualize the jump, part 1 -- Ascending
-		if (robotCl.transform.position.x < midPoint) {
-			//robotRb.velocity = new Vector3(speed, speed, 0);
-			// Calculate the x-value of the mid-point
-			// ADDSTUFF -- Currently directly moves robot to the mid-point
-			robotCl.transform.Translate (Vector3.right*(currPoint - prevPoint)/10);
+		if (a == b) { // shortcut, handles infinities
+			return true;
+		} else if (a == 0 || b == 0 || diff < float.MinValue) {
+			// a or b is zero or both are extremely close to it
+			// relative error is less meaningful here
+			return diff < (epsilon * float.MinValue);
+		} else { // use relative error
+			return diff / (absA + absB) < epsilon;
 		}
-		if (robotRb.transform.position.x > midPoint) {
-			//robotRb.velocity = new Vector3(-speed, -speed, 0);
-			robotCl.transform.Translate (Vector3.right*(prevPoint - currPoint)/10);
-		}
-		/*
-		// Visualize the jump, part 2 -- Stop at the highest point
-		if (robotRb.transform.position.x == midPoint) {
-			robotRb.velocity = new Vector3(0, 0, 0);
-		}
-		// Visualize the jump, part 3 -- Descending
-		// ADDSTUFF
-		*/
 	}
 
+	// Display the movement from one point to another
+	void JumpRobot (int prevPoint, int currPoint, int direction) {
+		Vector3 vic = Vector3.zero;
+		// Check direction to find new transform.Translate
+		if (direction == 1) {
+			if (jumping == 1) {
+				vic = new Vector3 (0.5f, 0.25f, 0f);
+			} else {
+				vic = new Vector3 (0.5f, -0.25f, 0f);
+			}
+		}
+		if (direction == -1) {
+			if (jumping == 1) {
+				vic = new Vector3(-0.5f, 0.25f, 0f);
+			} else {
+				vic = new Vector3 (-0.5f, -0.25f, 0f);
+			}
+		}
+		robotCl.transform.Translate (vic*speed*Time.deltaTime);
+	}
 
 	// Enqueue actions to the actionList
 	void EnqueueToActionList(string movs){
@@ -715,5 +765,32 @@ public class GameController : MonoBehaviour {
 	}
 	*/
 	
+	/*
+	// JumpRobot -- FAILED
+	void JumpRobot (int prevPoint, int currPoint) {
+		// Visualize the jump, part 1 -- Ascending
+		if (robotCl.transform.position.x < midPoint) {
+			//robotRb.velocity = new Vector3(speed, speed, 0);
+			// Calculate the x-value of the mid-point
+			// ADDSTUFF -- Currently directly moves robot to the mid-point
+			//robotCl.transform.Translate (Vector3.right*(currPoint - prevPoint)/10);
+			direction = 1;
+			aniJump (prevPoint, currPoint, direction);
+		}
+		if (robotCl.transform.position.x > midPoint) {
+			//robotRb.velocity = new Vector3(-speed, -speed, 0);
+			//robotCl.transform.Translate (Vector3.right*(prevPoint - currPoint)/10);
+			direction = -1;
+			aniJump (prevPoint, currPoint, direction);
+		}
 
+		// Visualize the jump, part 2 -- Stop at the highest point
+		if (robotRb.transform.position.x == midPoint) {
+			robotRb.velocity = new Vector3(0, 0, 0);
+		}
+		// Visualize the jump, part 3 -- Descending
+		// ADDSTUFF
+	}
+
+	*/
 }
