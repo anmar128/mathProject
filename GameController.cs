@@ -57,6 +57,8 @@ public class GameController : MonoBehaviour {
 	private int playMode; // Not playing ~ 0, playing ~ 1
 	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
 	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
+	private float dex;
+	private float dey;
 
 	// Float variables containing the actual x-values of line start, end and speed
 	public float xMin; // Default: -6.5
@@ -225,10 +227,11 @@ public class GameController : MonoBehaviour {
 					Quaternion pressRotation = Quaternion.identity;
 					GameObject pressButton = Instantiate (pressStop, pressPosition, pressRotation) as GameObject;
 					pressButton.gameObject.tag = pressTag;
+					/*
 					// ADDSTUFF -- Re-initialize robot without actually creating another copy
 					// Re-initialize robot and start-finish lines
 					// Must re-initialize only if there is at least one pressdPlay-tagged object
-					/*GameObject[] prevList;
+					GameObject[] prevList;
 					prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
 					if (prevList.Length > 0) {
 						//robotCl.transform.Translate ((ValueX(currPoint)-ValueX(randStart)), 0, 0, Space.Self);
@@ -253,14 +256,10 @@ public class GameController : MonoBehaviour {
 		// ADDSTUFF -- Real-time gameplay
 		if (playMode == 1) {
 			if (jumping == 1) {
-				if (direction > 0) {
-					print ("Jumpdafukup right!");
-				}
-				if (direction < 0) {
-					print ("Jumpdafukup left!");
-				}
-				JumpRobot (prevPoint, currPoint, direction);
-				if (nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.01f)) {
+				print ("Jumpdafukup!");
+				JumpRobot (prevPoint, currPoint, direction, dex, dey, speed);
+				if (nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.1f)) {
+				//if (nearlyEqual(PointX(robotCl.transform.position.x), midPoint, 0.05f)) {
 					jumping = 2;
 				}
 			}
@@ -269,14 +268,10 @@ public class GameController : MonoBehaviour {
 				jumping = 3;
 			}
 			if (jumping == 3) {
-				if (direction > 0) {
-					print ("Get back down right!");
-				}
-				if (direction < 0) {
-					print ("Get back down left!");
-				}
-				JumpRobot (prevPoint, currPoint, direction);
-				if (robotCl.transform.position.x == ValueX(currPoint)) {
+				print ("Get back down!");
+				JumpRobot (prevPoint, currPoint, direction, dex, dey, speed);
+				if (nearlyEqual(robotCl.transform.position.x, (ValueX(currPoint)), 0.1f)) {
+				//if (nearlyEqual(PointX(robotCl.transform.position.x), currPoint, 0.05f)) {
 					jumping = 0;
 				}
 			}
@@ -461,12 +456,14 @@ public class GameController : MonoBehaviour {
 				timish = 1 + (prevPoint - currPoint)/10;
 			}
 			jumping = 1;
-			JumpRobot (prevPoint, currPoint, direction);
+			// Set current dex, dey and timish values
+			dex = Mathf.Abs (currPoint - prevPoint);
+			dey = 10 / dex;
+			timish = Mathf.Min (timish, 2.5f);
+			JumpRobot (prevPoint, currPoint, direction, dex, dey, speed);
 			yield return new WaitForSeconds (timish);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
-			// ADDSTUFF -- probably did the jump
-			jumping = 0;
 		}
 		if (currPoint == randFinish){
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
@@ -479,10 +476,18 @@ public class GameController : MonoBehaviour {
 	// Calculate the x-value of the robot or the start-finish lines
 	// given the actual theoritical value
 	// |startValue| = |finishValue| = 6.5, display numbers in [0,65]
-	float ValueX (float currPos) {
+	float ValueX (float cufPos) {
 		float actPos;
-		actPos = xMin + currPos/5f;
+		actPos = xMin + cufPos / 5;
 		return (actPos);
+	}
+
+	// Calculate the theoritical value of the robot
+	// given the actual x-value
+	float PointX (float actPos) {
+		float cufPoint;
+		cufPoint = (actPos + 6.5f) * 5;
+		return cufPoint;
 	}
 
 	// Check for equality in floats
@@ -490,34 +495,43 @@ public class GameController : MonoBehaviour {
 		float absA = Mathf.Abs(a);
 		float absB = Mathf.Abs(b);
 		float diff = Mathf.Abs(a - b);
+		float absD = Mathf.Abs(absA - absB);
 
 		if (a == b) { // shortcut, handles infinities
 			return true;
-		} else if (a == 0 || b == 0 || diff < float.MinValue) {
+		} /*else if (a == 0 || b == 0 || diff < float.MinValue) {
 			// a or b is zero or both are extremely close to it
 			// relative error is less meaningful here
 			return diff < (epsilon * float.MinValue);
-		} else { // use relative error
-			return diff / (absA + absB) < epsilon;
+		} */else { // use relative error
+			//return diff / (absA + absB) < epsilon;
+			return absD / (absA + absB) < epsilon;
 		}
 	}
 
 	// Display the movement from one point to another
-	void JumpRobot (int prevPoint, int currPoint, int direction) {
+	// For default numbering system -- displaying numbers in [0,65]
+	// with |startValue| = |finishValue| = 6.5
+	// dx' = {1, 5, 10, 50}, dx = {0.2, 1, 2, 10}
+	// for max(y-value) ~ 0.5, dy ~ {1, 0.2, 0.1, 0.02}
+	// and mean(speed) ~ 2, speed ~ {0.2, 1, 2, 10}
+	void JumpRobot (int prevPoint, int currPoint, int direction, float dex, float dey, float speed) {
 		Vector3 vic = Vector3.zero;
+		dex = Mathf.Min (dex, 3f);
 		// Check direction to find new transform.Translate
 		if (direction == 1) {
 			if (jumping == 1) {
-				vic = new Vector3 (0.5f, 0.25f, 0f);
+				// Works well-ish with 0.5f 0.25f for dx = 10
+				vic = new Vector3 (dex, dey, 0f);
 			} else {
-				vic = new Vector3 (0.5f, -0.25f, 0f);
+				vic = new Vector3 (dex, -dey, 0f);
 			}
 		}
 		if (direction == -1) {
 			if (jumping == 1) {
-				vic = new Vector3(-0.5f, 0.25f, 0f);
+				vic = new Vector3(-(dex), dey, 0f);
 			} else {
-				vic = new Vector3 (-0.5f, -0.25f, 0f);
+				vic = new Vector3 (-(dex), -dey, 0f);
 			}
 		}
 		robotCl.transform.Translate (vic*speed*Time.deltaTime);
