@@ -58,7 +58,6 @@ public class GameController : MonoBehaviour {
 	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
 	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
 	private float dex;
-	private float dey;
 
 	// Float variables containing the actual x-values of line start, end and speed
 	public float xMin; // Default: -6.5
@@ -257,22 +256,38 @@ public class GameController : MonoBehaviour {
 		if (playMode == 1) {
 			if (jumping == 1) {
 				print ("Jumpdafukup!");
-				JumpRobot (prevPoint, currPoint, direction, dex, dey, speed);
-				if (nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.1f)) {
-				//if (nearlyEqual(PointX(robotCl.transform.position.x), midPoint, 0.05f)) {
-					jumping = 2;
+				JumpRobot (prevPoint, currPoint, direction, dex, speed);
+				if (direction == 1) {
+					if ((nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.05f)) || (robotCl.transform.position.x > ValueX(midPoint))) {
+						print (robotCl.transform.position.x);
+						jumping = 2;
+					}
+				}
+				if (direction == -1) {
+					if ((nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.05f)) || (robotCl.transform.position.x < ValueX(midPoint))) {
+						print (robotCl.transform.position.x);
+						jumping = 2;
+					}
 				}
 			}
 			if (jumping == 2) {
 				print ("Hold it!");
+				print (robotCl.transform.position.x);
+				JumpRobot (prevPoint, currPoint, direction, dex, speed);
 				jumping = 3;
 			}
 			if (jumping == 3) {
 				print ("Get back down!");
-				JumpRobot (prevPoint, currPoint, direction, dex, dey, speed);
-				if (nearlyEqual(robotCl.transform.position.x, (ValueX(currPoint)), 0.1f)) {
-				//if (nearlyEqual(PointX(robotCl.transform.position.x), currPoint, 0.05f)) {
-					jumping = 0;
+				JumpRobot (prevPoint, currPoint, direction, dex, speed);
+				if (direction == 1) {
+					if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x > ValueX(currPoint))) {
+						jumping = 0;
+					}
+				}
+				if (direction == -1) {
+					if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x < ValueX(currPoint))) {
+						jumping = 0;
+					}
 				}
 			}
 		}
@@ -445,6 +460,7 @@ public class GameController : MonoBehaviour {
 			}
 			print (currPoint);
 			midPoint = prevPoint + (currPoint - prevPoint) / 2;
+			print (ValueX(midPoint));
 			// Calculate new currPosition.x for line instantiation
 			currPosition.x = ValueX (currPoint);
 			// Calculate direction and set jumping
@@ -456,11 +472,10 @@ public class GameController : MonoBehaviour {
 				timish = 1 + (prevPoint - currPoint)/10;
 			}
 			jumping = 1;
-			// Set current dex, dey and timish values
+			// Set current dex and timish values
 			dex = Mathf.Abs (currPoint - prevPoint);
-			dey = 10 / dex;
 			timish = Mathf.Min (timish, 2.5f);
-			JumpRobot (prevPoint, currPoint, direction, dex, dey, speed);
+			JumpRobot (prevPoint, currPoint, direction, dex, speed);
 			yield return new WaitForSeconds (timish);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
@@ -494,44 +509,50 @@ public class GameController : MonoBehaviour {
 	bool nearlyEqual(float a, float b, float epsilon) {
 		float absA = Mathf.Abs(a);
 		float absB = Mathf.Abs(b);
-		float diff = Mathf.Abs(a - b);
 		float absD = Mathf.Abs(absA - absB);
 
-		if (a == b) { // shortcut, handles infinities
+		if ( a*b < 0f) {
+			return false;
+		} else if (a == b) {
 			return true;
-		} /*else if (a == 0 || b == 0 || diff < float.MinValue) {
-			// a or b is zero or both are extremely close to it
-			// relative error is less meaningful here
-			return diff < (epsilon * float.MinValue);
-		} */else { // use relative error
-			//return diff / (absA + absB) < epsilon;
-			return absD / (absA + absB) < epsilon;
+		} else {
+			return absD < epsilon;
 		}
 	}
 
 	// Display the movement from one point to another
 	// For default numbering system -- displaying numbers in [0,65]
 	// with |startValue| = |finishValue| = 6.5
-	// dx' = {1, 5, 10, 50}, dx = {0.2, 1, 2, 10}
+	// dex = dx' = {1, 5, 10, 50}, dx = {0.2, 1, 2, 10}
 	// for max(y-value) ~ 0.5, dy ~ {1, 0.2, 0.1, 0.02}
 	// and mean(speed) ~ 2, speed ~ {0.2, 1, 2, 10}
-	void JumpRobot (int prevPoint, int currPoint, int direction, float dex, float dey, float speed) {
+	void JumpRobot (int prevPoint, int currPoint, int direction, float dex, float speed) {
 		Vector3 vic = Vector3.zero;
-		dex = Mathf.Min (dex, 3f);
+		dex = Mathf.Min (dex, 5f);
+		float dey = 10 / dex;
 		// Check direction to find new transform.Translate
 		if (direction == 1) {
-			if (jumping == 1) {
-				// Works well-ish with 0.5f 0.25f for dx = 10
-				vic = new Vector3 (dex, dey, 0f);
+			if ((dex == 1f) || (jumping == 2)) {
+				vic = new Vector3 (dex, 0f, 0f);
 			} else {
-				vic = new Vector3 (dex, -dey, 0f);
+				if (jumping == 1) {
+					// Works well-ish with 0.5f 0.25f for dx = 10
+					vic = new Vector3 (dex, dey, 0f);
+				} else {
+					vic = new Vector3 (dex, -dey, 0f);
+				}
+				
 			}
 		}
 		if (direction == -1) {
-			if (jumping == 1) {
-				vic = new Vector3(-(dex), dey, 0f);
+			if ((dex == 1f) || (jumping == 2)) {
+				vic = new Vector3 (-dex, 0f, 0f);
 			} else {
-				vic = new Vector3 (-(dex), -dey, 0f);
+				if (jumping == 1) {
+					vic = new Vector3(-dex, dey, 0f);
+				} else {
+					vic = new Vector3 (-dex, -dey, 0f);
+				}
 			}
 		}
 		robotCl.transform.Translate (vic*speed*Time.deltaTime);
