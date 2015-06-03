@@ -6,11 +6,13 @@ public class TutorialController : MonoBehaviour {
 	// GameObject and Vector3 variables to be used
 	// for gameview initialization
 	public Vector3 robotValues; // Default: [0,  0.5, 4]
-	public Vector3 startValues;
-	public Vector3 obstacleValues; // Default: [0,  -1, 0]
-	public Vector3 appleValues;
+	public Vector3 startValues; // Default: zero
+	public Vector3 obstacleValues; // Default: [0, -1, 2]
+	public Vector3 basketValues; // Default: [0, -0.65, 2]
+	public Vector3 appleValues; // Default: [0, 1.1, 2]
 	public GameObject robot;
 	public GameObject obstacle;
+	public GameObject basket;
 	public GameObject apple;
 	public GameObject youWin;
 	public Vector3 numStartValues;
@@ -36,12 +38,15 @@ public class TutorialController : MonoBehaviour {
 	// GameObject to be used for the robot gameplay
 	private GameObject robotCl;
 	private GameObject obstaCl;
+	private GameObject baskeCl;
 
 	// Int variables containing the obstacle and start-current points of the robot
 	private int randStart;
 	private int randObstacle;
+	private int randBasket;
 	private int currPoint;
 	private int prevPoint;
+	private int nextPoint;
 	private float midPoint;
 	private int playMode; // Not playing ~ 0, playing ~ 1
 	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
@@ -59,10 +64,12 @@ public class TutorialController : MonoBehaviour {
 	// Apples shall be instantiated in blocks 15, 16, 17
 	void Start () {
 		// Calculation of start and finish values
-		randStart = Random.Range(5, 9);
-		randObstacle = Random.Range(10, 12);
+		randStart = Random.Range (9, 11);
+		randObstacle = Random.Range (11, 13);
+		randBasket = Random.Range (13, 15);
 		currPoint = randStart;
 		prevPoint = currPoint;
+		nextPoint = currPoint;
 		playMode = 0;
 		direction = 0;
 		moving = 0;
@@ -87,123 +94,131 @@ public class TutorialController : MonoBehaviour {
 			RaycastHit hit;
 			if (Physics.Raycast (ray, out hit)) {
 				string hitTag = hit.transform.tag;
-				// Handle click on the control panel icons -- to add actions on the actionList
-				if ((hitTag == "stepleft") && (Time.time > nextClick)) {
-					movs = movs + "q";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "stepright") && (Time.time > nextClick)) {
-					movs = movs + "w";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "stepjump") && (Time.time > nextClick)) {
-					movs = movs + "e";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "applepick") && (Time.time > nextClick)) {
-					movs = movs + "r";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "applenotpick") && (Time.time > nextClick)) {
-					movs = movs + "t";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "applethrow") && (Time.time > nextClick)) {
-					movs = movs + "y";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "appletobasket") && (Time.time > nextClick)) {
-					movs = movs + "u";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "appleemptybasket") && (Time.time > nextClick)) {
-					movs = movs + "i";
-					nextClick = Time.time + clickRate;
-					EnqueueToActionList (movs);
-				}
-					
-				// Handle click on the actionList -- to remove actions from the actionList
-				// ADDSTUFF
-				if ((hitTag == "action01") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					// Calculate new actionList (movs) -- update actionList
-					movs = DeleteFromActionList (movs, 1);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action02") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 2);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action03") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 3);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action04") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 4);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action05") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 5);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action06") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 6);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action07") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 7);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action08") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 8);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action09") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 9);
-					EnqueueToActionList (movs);
-				}
-				if ((hitTag == "action10") && (Time.time > nextClick)){
-					nextClick = Time.time + clickRate;
-					movs = DeleteFromActionList (movs, 10);
-					EnqueueToActionList (movs);
-				}
-
-				// Enter play mode -- click on Play button
-				if ((hitTag == "butPlay") && (Time.time > nextClick)) {
-					nextClick = Time.time + clickRate;
-					currPoint = randStart;
-					// Update Play-button
-					pressTag = "pressdPlay";
-					Vector3 pressPosition = new Vector3 (pressPlayValues.x, pressPlayValues.y, pressPlayValues.z);
-					Quaternion pressRotation = Quaternion.identity;
-					GameObject pressButton = Instantiate (pressPlay, pressPosition, pressRotation) as GameObject;
-					pressButton.gameObject.tag = pressTag;
-					// Update Stop-button -- in theory there should be only one item
-					// tagged pressdStop, but search for multiple entries just in case
-					GameObject[] prevList;
-					prevList = GameObject.FindGameObjectsWithTag ("pressdStop");
-					for (int i = 0; i < prevList.Length; i++){
-						Destroy (prevList[i]);
+				// Clicks won't work when in play-mode
+				if (playMode == 0) {
+					// Handle click on the control panel icons -- to add actions on the actionList
+					if ((hitTag == "stepleft") && (Time.time > nextClick)) {
+						movs = movs + "q";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
 					}
-					// Actually enter play mode
-					playMode = 1;
-					print (movs);
-					StartCoroutine (MoveRobot (movs, currPoint, randObstacle));
+					if ((hitTag == "stepright") && (Time.time > nextClick)) {
+						movs = movs + "w";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "stepjump") && (Time.time > nextClick)) {
+						movs = movs + "e";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "applepick") && (Time.time > nextClick)) {
+						movs = movs + "r";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "applenotpick") && (Time.time > nextClick)) {
+						movs = movs + "t";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "applethrow") && (Time.time > nextClick)) {
+						movs = movs + "y";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "appletobasket") && (Time.time > nextClick)) {
+						movs = movs + "u";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "appleemptybasket") && (Time.time > nextClick)) {
+						movs = movs + "i";
+						nextClick = Time.time + clickRate;
+						EnqueueToActionList (movs);
+					}
+
+					// Handle click on the actionList -- to remove actions from the actionList
+					// ADDSTUFF
+					if ((hitTag == "action01") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						// Calculate new actionList (movs) -- update actionList
+						movs = DeleteFromActionList (movs, 1);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action02") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 2);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action03") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 3);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action04") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 4);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action05") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 5);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action06") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 6);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action07") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 7);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action08") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 8);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action09") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 9);
+						EnqueueToActionList (movs);
+					}
+					if ((hitTag == "action10") && (Time.time > nextClick)){
+						nextClick = Time.time + clickRate;
+						movs = DeleteFromActionList (movs, 10);
+						EnqueueToActionList (movs);
+					}
+
+					// Enter play mode -- click on Play button
+					if ((hitTag == "butPlay") && (Time.time > nextClick)) {
+						nextClick = Time.time + clickRate;
+						currPoint = randStart;
+						// Update Play-button
+						pressTag = "pressdPlay";
+						Vector3 pressPosition = new Vector3 (pressPlayValues.x, pressPlayValues.y, pressPlayValues.z);
+						Quaternion pressRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressPlay, pressPosition, pressRotation) as GameObject;
+						pressButton.gameObject.tag = pressTag;
+						// Update Stop-button -- in theory there should be only one item
+						// tagged pressdStop, but search for multiple entries just in case
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdStop");
+						for (int i = 0; i < prevList.Length; i++){
+							Destroy (prevList[i]);
+						}
+						/*// Delete apples from previous plays
+					prevList = GameObject.FindGameObjectsWithTag ("apple");
+					for (int i = 0; i < prevList.Length; i++) {
+						Destroy (prevList [i]);
+					}*/
+						// Actually enter play mode
+						playMode = 1;
+						print (movs);
+						StartCoroutine (MoveRobot (movs, currPoint, randObstacle));
+					}
 				}
 				// Stop play mode -- click on Stop button
 				// ADD: Clear previous scene-items -- on GameController of ExcSeven too
@@ -236,24 +251,62 @@ public class TutorialController : MonoBehaviour {
 					print ("Moveit!");
 					RunRobot (prevPoint, currPoint, direction, speed);
 					if (direction == 1) {
-						if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x > ValueX(currPoint))) {
+						// For some reason checking with currPoint doesn't work -- currPoint keeps value from one step earlier in Update
+						//if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x > ValueX(currPoint))) {
+						if (nearlyEqual(robotCl.transform.position.x, ValueX(nextPoint), 0.05f) || (robotCl.transform.position.x > ValueX(nextPoint))) {
 							moving = 0;
 							jumping = 0;
+							print (currPoint);
 							print (robotCl.transform.position.x);
 						}
 					}
 					if (direction == -1) {
-						if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x < ValueX(currPoint))) {
+						if (nearlyEqual(robotCl.transform.position.x, ValueX(nextPoint), 0.05f) || (robotCl.transform.position.x < ValueX(nextPoint))) {
 							moving = 0;
 							jumping = 0;
+							print (currPoint);
 							print (robotCl.transform.position.x);
 						}
 					}
 				}
 				// Jumping
 				else {
-					print ("Jumpdafukup!");
-					RunRobot (prevPoint, currPoint, direction, speed);
+					if (jumping == 1) {
+						print ("Jumpdafukup!");
+						RunRobot (prevPoint, currPoint, direction, speed);
+						if (direction == 1) {
+							if ((nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.05f)) || (robotCl.transform.position.x > ValueX(midPoint))) {
+								print (robotCl.transform.position.x);
+								jumping = 2;
+							}
+						}
+						if (direction == -1) {
+							if ((nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.05f)) || (robotCl.transform.position.x < ValueX(midPoint))) {
+								print (robotCl.transform.position.x);
+								jumping = 2;
+							}
+						}
+					}
+					if (jumping == 2) {
+						print ("Hold it!");
+						print (robotCl.transform.position.x);
+						RunRobot (prevPoint, currPoint, direction, speed);
+						jumping = 3;
+					}
+					if (jumping == 3) {
+						print ("Get back down!");
+						RunRobot (prevPoint, currPoint, direction, speed);
+						if (direction == 1) {
+							if (nearlyEqual(robotCl.transform.position.x, ValueX(nextPoint), 0.05f) || (robotCl.transform.position.x > ValueX(nextPoint))) {
+								jumping = 0;
+							}
+						}
+						if (direction == -1) {
+							if (nearlyEqual(robotCl.transform.position.x, ValueX(nextPoint), 0.05f) || (robotCl.transform.position.x < ValueX(nextPoint))) {
+								jumping = 0;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -264,8 +317,14 @@ public class TutorialController : MonoBehaviour {
 		// Variables to be used for actual x-position
 		float actualStart = ValueX (randStart);
 		float actualObstacle = ValueX (randObstacle);
+		float actualBasket = ValueX (randBasket);
+
+		// Variables for tags and apple-objects
+		GameObject appleCl;
 		string robotTag = "player";
+		string appleTag = "apple";
 		string obstaTag = "obstacle";
+		string baskeTag = "basket";
 
 		// Delete robot, apple and obstacle copies from previous plays
 		// Must delete only if there is at least one pressdPlay-tagged object
@@ -290,8 +349,10 @@ public class TutorialController : MonoBehaviour {
 		// Initialize poisition-rotation for the obstacle and the robot
 		Vector3 robotStart = new Vector3 (actualStart, robotValues.y, robotValues.z);
 		Vector3 obstaclePosition = new Vector3 (actualObstacle, obstacleValues.y, obstacleValues.z);
+		Vector3 basketPosition = new Vector3 (actualBasket, basketValues.y, basketValues.z);
 		Quaternion robotRotation = Quaternion.identity;
 		Quaternion obstacleRotation = Quaternion.identity;
+		Quaternion basketRotation = Quaternion.identity;
 
 		// Initialize and instantiate apples
 		for (int i = 15; i <= 17; i++) {
@@ -300,14 +361,17 @@ public class TutorialController : MonoBehaviour {
 			float randYNoise = Random.Range (-0.2f, 0.2f);
 			Vector3 applePosition = new Vector3 (appleStart + randXNoise, appleValues.y + randYNoise, appleValues.z);
 			Quaternion appleRotation = Quaternion.identity;
-			Instantiate (apple, applePosition, appleRotation);
+			appleCl = Instantiate (apple, applePosition, appleRotation) as GameObject;
+			appleCl.gameObject.tag = appleTag;
 		}
 
 		// Instantiate poisition-rotation for the obstacle and the robot
 		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
 		obstaCl = Instantiate (obstacle, obstaclePosition, obstacleRotation) as GameObject;
+		baskeCl = Instantiate (basket, basketPosition, basketRotation) as GameObject;
 		robotCl.gameObject.tag = robotTag;
 		obstaCl.gameObject.tag = obstaTag;
+		baskeCl.gameObject.tag = baskeTag;
 
 	}
 
@@ -316,7 +380,7 @@ public class TutorialController : MonoBehaviour {
 	// Tree trunk on block 16, branches from 14 to 18
 	IEnumerator MoveRobot (string movs, int currPoint, int randObstacle) {
 		char nextMov;
-		float timish = 1f;
+		float timish = 0.5f;
 
 		for (int i = 0; i < movs.Length; i++) {
 			// End if stop-button is pushed
@@ -328,18 +392,26 @@ public class TutorialController : MonoBehaviour {
 			switch (nextMov)
 			{
 				case 'q':
-					currPoint = currPoint - 1;
+					if (currPoint != (randObstacle + 1)) {
+						currPoint = currPoint - 1;
+					}
 					break;
 				case 'w':
-					currPoint = currPoint + 1;
+					if (currPoint != (randObstacle - 1)) {
+						currPoint = currPoint + 1;
+					}
 					break;
 				case 'e':
-					currPoint = currPoint + 2;
-					jumping = 1;
+					if (currPoint != (randObstacle - 2)) {
+						currPoint = currPoint + 2;
+						jumping = 1;
+					}
 					break;
 				case 'r':
-					// ADDSTUFF -- check spot, if already holding
-					holding = 1;
+					if ((currPoint == 15)||(currPoint ==16)||(currPoint ==17)) {
+						// ADDSTUFF -- delete/ move apple from tree
+						holding = 1;
+					}
 					break;
 				case 't':
 					// ADDSTUFF -- check if already holding, instantiate
@@ -350,30 +422,32 @@ public class TutorialController : MonoBehaviour {
 					holding = 0;
 					break;
 				case 'u':
-					// ADDSTUFF -- check spot, if holding
-					basketed = basketed + 1;
+					if ((holding > 0)&&((currPoint >= randBasket - 1)&&(currPoint <= randBasket + 1))) {
+						// ADDSTUFF -- move apple to basket
+						holding = 0;
+						basketed = basketed + 1;
+					}
 					break;
 				case 'i':
 					// ADDSTUFF -- check if empty, instantiate
 					basketed = 0;
 					break;
 			}
-			print (prevPoint);
-			print (ValueX(prevPoint));
-			print (currPoint);
-			print (ValueX(currPoint));
+			nextPoint = currPoint;
+			midPoint = prevPoint + (currPoint - prevPoint) / 2;
 			// Calculate direction
 			if (prevPoint == currPoint) {
 				direction = 0;
 				moving = 0;
-			} else if (prevPoint < currPoint) {
-				direction = 1;
-				moving = 1;
-				timish = timish + (currPoint - prevPoint)/2;
 			} else {
-				direction = -1;
 				moving = 1;
-				timish = timish + (prevPoint - currPoint)/2;
+				if (prevPoint < currPoint) {
+					direction = 1;
+					timish = 0.5f + (currPoint - prevPoint)/2;
+				} else {
+					direction = -1;
+					timish = 0.5f + (prevPoint - currPoint)/2;
+				}
 			}
 			yield return new WaitForSeconds (timish);
 		}
@@ -416,7 +490,7 @@ public class TutorialController : MonoBehaviour {
 		// Check direction to find new transform.Translate
 		if (direction == 1) {
 			if (jumping == 0) {
-				vic = new Vector3 (1f, 1f, 0f);
+				vic = new Vector3 (1f, 0f, 0f);
 			} else {
 				if (jumping == 1) {
 					// Works well-ish with 0.5f 0.25f for dx = 10
@@ -622,6 +696,7 @@ public class TutorialController : MonoBehaviour {
 		return (newMov);
 	}
 
+	/*
 	// Use movs to find the robot's next moves
 	void HandleRobot (int randStart, string movs) {
 		char nextMov;
@@ -681,5 +756,5 @@ public class TutorialController : MonoBehaviour {
 			print (currPoint);
 		}
 	}
-
+	*/
 }

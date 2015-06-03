@@ -94,7 +94,7 @@ public class GameController : MonoBehaviour {
 			RaycastHit hit;
 			if (Physics.Raycast (ray, out hit)) {
 				string hitTag = hit.transform.tag;
-
+				// Clicks won't work when in play-mode
 				if (playMode == 0) {
 					// Handle click on the control panel icons -- to add actions on the actionList
 					if ((hitTag == "left50") && (Time.time > nextClick)) {
@@ -229,17 +229,6 @@ public class GameController : MonoBehaviour {
 					Quaternion pressRotation = Quaternion.identity;
 					GameObject pressButton = Instantiate (pressStop, pressPosition, pressRotation) as GameObject;
 					pressButton.gameObject.tag = pressTag;
-					/*
-					// ADDSTUFF -- Re-initialize robot without actually creating another copy
-					// Re-initialize robot and start-finish lines
-					// Must re-initialize only if there is at least one pressdPlay-tagged object
-					GameObject[] prevList;
-					prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
-					if (prevList.Length > 0) {
-						//robotCl.transform.Translate ((ValueX(currPoint)-ValueX(randStart)), 0, 0, Space.Self);
-						robotCl.transform.Translate ((ValueX(currPoint-randStart)), 0, 0, Space.Self);
-					}
-					*/
 					// Update Play-button -- in theory there should be only one item
 					// tagged pressdPlay, but search for multiple entries just in case
 					GameObject[] prevList;
