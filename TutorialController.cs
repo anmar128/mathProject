@@ -33,12 +33,23 @@ public class TutorialController : MonoBehaviour {
 	public GameObject pressPlay;
 	public GameObject pressStop;
 
+	// GameObject to be used for the robot gameplay
+	private GameObject robotCl;
+	private GameObject obstaCl;
+
 	// Int variables containing the obstacle and start-current points of the robot
-	public int randStart;
-	public int randObstacle;
-	public int currPoint;
-	public int holding;
-	public int basketed;
+	private int randStart;
+	private int randObstacle;
+	private int currPoint;
+	private int prevPoint;
+	private float midPoint;
+	private int playMode; // Not playing ~ 0, playing ~ 1
+	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
+	private int moving; // Not moving ~ 0, moving ~ 1
+	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
+	private int holding;
+	private int basketed;
+	public int speed; // Default: 2
 
 	// Initialization
 	// Generally the robot will start from a random point (block) on the left of the screen
@@ -51,6 +62,11 @@ public class TutorialController : MonoBehaviour {
 		randStart = Random.Range(5, 9);
 		randObstacle = Random.Range(10, 12);
 		currPoint = randStart;
+		prevPoint = currPoint;
+		playMode = 0;
+		direction = 0;
+		moving = 0;
+		jumping = 0;
 		holding = 0;
 		basketed = 0;
 		// Initialize robot and start-finish lines
@@ -184,8 +200,10 @@ public class TutorialController : MonoBehaviour {
 					for (int i = 0; i < prevList.Length; i++){
 						Destroy (prevList[i]);
 					}
+					// Actually enter play mode
+					playMode = 1;
 					print (movs);
-					//MoveRobot (currPoint, randObstacle, movs);
+					StartCoroutine (MoveRobot (movs, currPoint, randObstacle));
 				}
 				// Stop play mode -- click on Stop button
 				// ADD: Clear previous scene-items -- on GameController of ExcSeven too
@@ -205,10 +223,38 @@ public class TutorialController : MonoBehaviour {
 						Destroy (prevList[i]);
 					}
 					// Re-initialize robot
+					playMode = 0;
 					InitializeTutorial (randStart, randStart, randObstacle);
 				}
-
-
+			}
+		}
+		// ADDSTUFF -- Real-time gameplay
+		if (playMode == 1) {
+			if (moving == 1) {
+				// Not jumping
+				if (jumping == 0) {
+					print ("Moveit!");
+					RunRobot (prevPoint, currPoint, direction, speed);
+					if (direction == 1) {
+						if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x > ValueX(currPoint))) {
+							moving = 0;
+							jumping = 0;
+							print (robotCl.transform.position.x);
+						}
+					}
+					if (direction == -1) {
+						if (nearlyEqual(robotCl.transform.position.x, ValueX(currPoint), 0.05f) || (robotCl.transform.position.x < ValueX(currPoint))) {
+							moving = 0;
+							jumping = 0;
+							print (robotCl.transform.position.x);
+						}
+					}
+				}
+				// Jumping
+				else {
+					print ("Jumpdafukup!");
+					RunRobot (prevPoint, currPoint, direction, speed);
+				}
 			}
 		}
 	}
@@ -216,9 +262,32 @@ public class TutorialController : MonoBehaviour {
 	// Inititalization function
 	void InitializeTutorial (int randStart, int currPoint, int randObstacle) {
 		// Variables to be used for actual x-position
-		float actualStart = (randStart - 1)*0.7f - 6.4f;
-		float actualObstacle = (randObstacle - 1)*0.7f - 6.4f;
-		// Initialize poisition-rotation for the robot and the obstacle
+		float actualStart = ValueX (randStart);
+		float actualObstacle = ValueX (randObstacle);
+		string robotTag = "player";
+		string obstaTag = "obstacle";
+
+		// Delete robot, apple and obstacle copies from previous plays
+		// Must delete only if there is at least one pressdPlay-tagged object
+		GameObject[] prevList;
+		prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+		if (prevList.Length > 0) {
+			GameObject[] prevList2;
+			prevList2 = GameObject.FindGameObjectsWithTag ("player");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+			prevList2 = GameObject.FindGameObjectsWithTag ("obstacle");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+			prevList2 = GameObject.FindGameObjectsWithTag ("apple");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+		}
+
+		// Initialize poisition-rotation for the obstacle and the robot
 		Vector3 robotStart = new Vector3 (actualStart, robotValues.y, robotValues.z);
 		Vector3 obstaclePosition = new Vector3 (actualObstacle, obstacleValues.y, obstacleValues.z);
 		Quaternion robotRotation = Quaternion.identity;
@@ -234,17 +303,142 @@ public class TutorialController : MonoBehaviour {
 			Instantiate (apple, applePosition, appleRotation);
 		}
 
+		// Instantiate poisition-rotation for the obstacle and the robot
+		robotCl = Instantiate (robot, robotStart, robotRotation) as GameObject;
+		obstaCl = Instantiate (obstacle, obstaclePosition, obstacleRotation) as GameObject;
+		robotCl.gameObject.tag = robotTag;
+		obstaCl.gameObject.tag = obstaTag;
 
-		// Instantiate poisition-rotation for the start-finish lines and the robot
-		Instantiate (robot, robotStart, robotRotation);
-		Instantiate (obstacle, obstaclePosition, obstacleRotation);
 	}
 
 	// Calculation of the robot's new position-action according to movs
 	// Blocks in scene x-values: 1 ~ 6.4 | 2 ~ 5.7 | 3 ~ 5 | 4 ~ 4.3 | etc
 	// Tree trunk on block 16, branches from 14 to 18
-	void MoveRobot (int currPoint, int randObstacle, string movs) {
-		
+	IEnumerator MoveRobot (string movs, int currPoint, int randObstacle) {
+		char nextMov;
+		float timish = 1f;
+
+		for (int i = 0; i < movs.Length; i++) {
+			// End if stop-button is pushed
+			if (playMode == 0) {
+				return false;
+			}
+			prevPoint = currPoint;
+			nextMov = movs[i];
+			switch (nextMov)
+			{
+				case 'q':
+					currPoint = currPoint - 1;
+					break;
+				case 'w':
+					currPoint = currPoint + 1;
+					break;
+				case 'e':
+					currPoint = currPoint + 2;
+					jumping = 1;
+					break;
+				case 'r':
+					// ADDSTUFF -- check spot, if already holding
+					holding = 1;
+					break;
+				case 't':
+					// ADDSTUFF -- check if already holding, instantiate
+					holding = 0;
+					break;
+				case 'y':
+					// ADDSTUFF -- check if already holding, instantiate
+					holding = 0;
+					break;
+				case 'u':
+					// ADDSTUFF -- check spot, if holding
+					basketed = basketed + 1;
+					break;
+				case 'i':
+					// ADDSTUFF -- check if empty, instantiate
+					basketed = 0;
+					break;
+			}
+			print (prevPoint);
+			print (ValueX(prevPoint));
+			print (currPoint);
+			print (ValueX(currPoint));
+			// Calculate direction
+			if (prevPoint == currPoint) {
+				direction = 0;
+				moving = 0;
+			} else if (prevPoint < currPoint) {
+				direction = 1;
+				moving = 1;
+				timish = timish + (currPoint - prevPoint)/2;
+			} else {
+				direction = -1;
+				moving = 1;
+				timish = timish + (prevPoint - currPoint)/2;
+			}
+			yield return new WaitForSeconds (timish);
+		}
+		// Check the result
+		if (basketed > 0) {
+			Vector3 bravoPosition = new Vector3 (0, 0, 0);
+			Quaternion bravoRotation = Quaternion.identity;
+			Instantiate (youWin, bravoPosition, bravoRotation);
+		}
+		playMode = 0;
+	}
+
+	// Calculate the x-value of the robot or the obstacle
+	// given the actual theoritical block
+	// Blocks in scene x-values: 1 ~ 6.4 | 2 ~ 5.7 | 3 ~ 5 | 4 ~ 4.3 | etc
+	float ValueX (float cufPos) {
+		float actPos;
+		actPos = (cufPos - 1)*0.7f - 6.4f;
+		return actPos;
+	}
+
+	// Check for equality in floats
+	bool nearlyEqual(float a, float b, float epsilon) {
+		float absA = Mathf.Abs(a);
+		float absB = Mathf.Abs(b);
+		float absD = Mathf.Abs(absA - absB);
+
+		if ( a * b < 0f) {
+			return false;
+		} else if (a == b) {
+			return true;
+		} else {
+			return absD < epsilon;
+		}
+	}
+
+	// Display the movement from one point to another
+	void RunRobot (int prevPoint, int currPoint, int direction, float speed) {
+		Vector3 vic = Vector3.zero;
+		// Check direction to find new transform.Translate
+		if (direction == 1) {
+			if (jumping == 0) {
+				vic = new Vector3 (1f, 1f, 0f);
+			} else {
+				if (jumping == 1) {
+					// Works well-ish with 0.5f 0.25f for dx = 10
+					vic = new Vector3 (1f, 1f, 0f);
+				} else {
+					vic = new Vector3 (1f, -1f, 0f);
+				}
+
+			}
+		}
+		if (direction == -1) {
+			if (jumping == 0) {
+				vic = new Vector3 (-1f, 0f, 0f);
+			} else {
+				if (jumping == 1) {
+					vic = new Vector3(-1f, 1f, 0f);
+				} else {
+					vic = new Vector3 (-1f, -1f, 0f);
+				}
+			}
+		}
+		robotCl.transform.Translate (vic*speed*Time.deltaTime);
 	}
 
 	// Enqueue actions to the actionList

@@ -46,7 +46,6 @@ public class GameController : MonoBehaviour {
 
 	// GameObject and Rigidbody variables to be used for the robot gameplay
 	private GameObject robotCl;
-	//private Rigidbody robotRb;
 
 	// Int variables containing the start, finish and current points of the robot
 	private int randStart;
@@ -487,6 +486,7 @@ public class GameController : MonoBehaviour {
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
 			breakLine.gameObject.tag = breakTag;
 		}
+		// Check the result
 		if (currPoint == randFinish){
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
 			Quaternion bravoRotation = Quaternion.identity;
