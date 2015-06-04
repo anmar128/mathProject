@@ -40,7 +40,10 @@ public class TutorialController : MonoBehaviour {
 	private GameObject robotCl;
 	private GameObject obstaCl;
 	private GameObject baskeCl;
-	private GameObject heldaCl;
+	private GameObject applLCl;
+	private GameObject applMCl;
+	private GameObject applRCl;
+	private GameObject holdACl;
 
 	// Int variables containing the obstacle and start-current points of the robot
 	private int randStart;
@@ -55,6 +58,7 @@ public class TutorialController : MonoBehaviour {
 	private int direction;	// Left ~ -1, stopped ~ 0, right ~ 1
 	private int moving;		// Not moving ~ 0, moving ~ 1
 	private int jumping;	// Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3, on-spot ~ 4/5
+	private int instjump;	// No instant-jump ~ 0, instant-jump ~ 1
 	private int holding;	// Number of apples held
 	private int throwing;	// Number of apples throwing
 	private int basketed;	// Number of apples in the basket
@@ -70,6 +74,7 @@ public class TutorialController : MonoBehaviour {
 		randStart = Random.Range (9, 11);
 		randObstacle = Random.Range (11, 13);
 		randBasket = Random.Range (13, 15);
+		/*
 		currPoint = randStart;
 		prevPoint = currPoint;
 		nextPoint = currPoint;
@@ -77,9 +82,11 @@ public class TutorialController : MonoBehaviour {
 		direction = 0;
 		moving = 0;
 		jumping = 0;
+		instjump = 0;
 		holding = 0;
 		throwing = 0;
 		basketed = 0;
+		*/
 		// Initialize robot and start-finish lines
 		InitializeTutorial (randStart, currPoint, randObstacle);
 
@@ -260,17 +267,16 @@ public class TutorialController : MonoBehaviour {
 						if (nearlyEqual(robotCl.transform.position.x, ValueX(nextPoint), 0.05f) || (robotCl.transform.position.x > ValueX(nextPoint))) {
 							moving = 0;
 							jumping = 0;
-							print (currPoint);
-							print (robotCl.transform.position.x);
 						}
 					}
 					if (direction == -1) {
 						if (nearlyEqual(robotCl.transform.position.x, ValueX(nextPoint), 0.05f) || (robotCl.transform.position.x < ValueX(nextPoint))) {
 							moving = 0;
 							jumping = 0;
-							print (currPoint);
-							print (robotCl.transform.position.x);
 						}
+					}
+					if (holding == 1) {
+						holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
 					}
 				}
 				// Jumping
@@ -280,22 +286,25 @@ public class TutorialController : MonoBehaviour {
 						RunRobot (prevPoint, currPoint, direction, speed);
 						if (direction == 1) {
 							if ((nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.05f)) || (robotCl.transform.position.x > ValueX(midPoint))) {
-								print (robotCl.transform.position.x);
 								jumping = 2;
 							}
 						}
 						if (direction == -1) {
 							if ((nearlyEqual(robotCl.transform.position.x, ValueX(midPoint), 0.05f)) || (robotCl.transform.position.x < ValueX(midPoint))) {
-								print (robotCl.transform.position.x);
 								jumping = 2;
 							}
+						}
+						if (holding == 1) {
+							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
 						}
 					}
 					if (jumping == 2) {
 						print ("Hold it!");
-						print (robotCl.transform.position.x);
 						RunRobot (prevPoint, currPoint, direction, speed);
 						jumping = 3;
+						if (holding == 1) {
+							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+						}
 					}
 					if (jumping == 3) {
 						print ("Get back down!");
@@ -310,12 +319,56 @@ public class TutorialController : MonoBehaviour {
 								jumping = 0;
 							}
 						}
+						if (holding == 1) {
+							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+						}
 					}
 				}
 			}
+			// For some reason hop stops before completing the second-part when it's the last move
+			// -- works fine when it's not or when a jump comes before it
+			//Debug.Log (string.Format("Moving:{0}, Jumping:{1}, InstantJump:{2}", moving, jumping, instjump));
+			if (instjump == 1) {
+				print ("Hopup");
+				moving = 1;
+				RunRobot (prevPoint, currPoint, direction, speed);
+				if (nearlyEqual(robotCl.transform.position.y, 0.3f, 0.05f) || (robotCl.transform.position.y > 0.3f)) {
+					instjump = 2;
+				}
+			}
+			if (instjump == 2) {
+				print ("Hopdown");
+				if (holding == 1) {
+					holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+				}
+				if ((nearlyEqual(robotCl.transform.position.y, (-0.5f), 0.05f))||(robotCl.transform.position.y < -0.5f)){
+					print ("ExitHop");
+					instjump = 0;
+				}
+			}
 			if (throwing == 1) {
-				print ("THROWIN'");
-				throwing = 0;
+				print ("Throwin'");
+				RunApple (randBasket, nextPoint, speed, holdACl);
+				if (nextPoint < randBasket) {
+					print ("Righdown");
+					//if (nearlyEqual(holdACl.transform.position.x, ValueX(randBasket), 0.05f) || (holdACl.transform.position.x > ValueX(randBasket))) {
+					if (nearlyEqual(holdACl.transform.position.y, (basketValues.y + 0.05f), 0.05f) || (holdACl.transform.position.y < (basketValues.y + 0.05f))) {
+						throwing = 0;
+					}
+				}
+				if (nextPoint == randBasket) {
+					print ("Straighdown");
+					if (nearlyEqual(holdACl.transform.position.y, (basketValues.y + 0.05f), 0.05f) || (holdACl.transform.position.y < (basketValues.y + 0.05f))) {
+						throwing = 0;
+					}
+				}
+				if (nextPoint > randBasket) {
+					print ("Lefdown");
+					//if (nearlyEqual(holdACl.transform.position.x, ValueX(randBasket), 0.05f) || (holdACl.transform.position.x < ValueX(randBasket))) {
+					if (nearlyEqual(holdACl.transform.position.y, (basketValues.y + 0.05f), 0.05f) || (holdACl.transform.position.y < (basketValues.y + 0.05f))) {
+						throwing = 0;
+					}
+				}
 			}
 		}
 	}
@@ -326,6 +379,18 @@ public class TutorialController : MonoBehaviour {
 		float actualStart = ValueX (randStart);
 		float actualObstacle = ValueX (randObstacle);
 		float actualBasket = ValueX (randBasket);
+
+		currPoint = randStart;
+		prevPoint = currPoint;
+		nextPoint = currPoint;
+		playMode = 0;
+		direction = 0;
+		moving = 0;
+		jumping = 0;
+		instjump = 0;
+		holding = 0;
+		throwing = 0;
+		basketed = 0;
 
 		// Variables for tags and apple-objects
 		GameObject appleCl;
@@ -371,6 +436,13 @@ public class TutorialController : MonoBehaviour {
 			Quaternion appleRotation = Quaternion.identity;
 			appleCl = Instantiate (apple, applePosition, appleRotation) as GameObject;
 			appleCl.gameObject.tag = appleTag;
+			if (i == 15) {
+				applLCl = appleCl;
+			} else if (i == 16) {
+				applMCl = appleCl;
+			} else {
+				applRCl = appleCl;
+			}
 		}
 
 		// Instantiate poisition-rotation for the obstacle and the robot
@@ -416,9 +488,13 @@ public class TutorialController : MonoBehaviour {
 				}
 				break;
 			case 'r':
-				if ((currPoint == 15)||(currPoint ==16)||(currPoint ==17)) {
-					// ADDSTUFF -- delete/ move apple from tree
-					holding = 1;
+				if (holding == 0) {
+					instjump = 1;
+					if ((currPoint == 15) || (currPoint == 16) || (currPoint == 17)) {
+						// ADDSTUFF -- delete/ move apple from tree
+						holding = 1;
+						SelectApple (currPoint);
+					}
 				}
 				break;
 			case 't':
@@ -462,6 +538,7 @@ public class TutorialController : MonoBehaviour {
 		}
 		// Check the result
 		if (basketed > 0) {
+			yield return new WaitForSeconds (2*timish);
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
 			Quaternion bravoRotation = Quaternion.identity;
 			Instantiate (youWin, bravoPosition, bravoRotation);
@@ -521,11 +598,17 @@ public class TutorialController : MonoBehaviour {
 				}
 			}
 		}
+		if (instjump == 1) {
+			vic = new Vector3(0f, 1f, 0f);
+		}
+		if (instjump == 2) {
+			vic = new Vector3(0f, -1f, 0f);
+		}
 		robotCl.transform.Translate (vic*speed*Time.deltaTime);
 	}
 
 	// Display apple's movement -- from robot's hand to the basket
-	void RunApple (int randBasket, int currPoint, float speed) {
+	void RunApple (int randBasket, int currPoint, float speed, GameObject holdACl) {
 		Vector3 vic = Vector3.zero;
 		if (currPoint < randBasket) {
 			vic = new Vector3 (1f, -1f, 0f);
@@ -536,7 +619,23 @@ public class TutorialController : MonoBehaviour {
 		if (currPoint > randBasket) {
 			vic = new Vector3 (-1f, -1f, 0f);
 		}
-		heldaCl.transform.Translate (vic*speed*Time.deltaTime);
+		holdACl.transform.Translate (vic*speed*Time.deltaTime);
+	}
+
+	// Find the apple that the robot is under
+	void SelectApple (int currPoint) {
+		switch (currPoint)
+		{
+			case 15:
+				holdACl = applLCl;
+				break;
+			case 16:
+				holdACl = applMCl;
+				break;
+			case 17:
+				holdACl = applRCl;
+				break;
+		}
 	}
 
 	// Enqueue actions to the actionList
