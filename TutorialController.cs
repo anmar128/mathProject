@@ -40,6 +40,7 @@ public class TutorialController : MonoBehaviour {
 	private GameObject robotCl;
 	private GameObject obstaCl;
 	private GameObject baskeCl;
+	private GameObject heldaCl;
 
 	// Int variables containing the obstacle and start-current points of the robot
 	private int randStart;
@@ -312,6 +313,10 @@ public class TutorialController : MonoBehaviour {
 					}
 				}
 			}
+			if (throwing == 1) {
+				print ("THROWIN'");
+				throwing = 0;
+			}
 		}
 	}
 
@@ -428,6 +433,7 @@ public class TutorialController : MonoBehaviour {
 				if ((holding > 0)&&((currPoint >= randBasket - 1)&&(currPoint <= randBasket + 1))) {
 					// ADDSTUFF -- move apple to basket
 					holding = 0;
+					throwing = 1;
 					basketed = basketed + 1;
 				}
 				break;
@@ -516,6 +522,21 @@ public class TutorialController : MonoBehaviour {
 			}
 		}
 		robotCl.transform.Translate (vic*speed*Time.deltaTime);
+	}
+
+	// Display apple's movement -- from robot's hand to the basket
+	void RunApple (int randBasket, int currPoint, float speed) {
+		Vector3 vic = Vector3.zero;
+		if (currPoint < randBasket) {
+			vic = new Vector3 (1f, -1f, 0f);
+		}
+		if (currPoint == randBasket) {
+			vic = new Vector3 (0f, -1f, 0f);
+		}
+		if (currPoint > randBasket) {
+			vic = new Vector3 (-1f, -1f, 0f);
+		}
+		heldaCl.transform.Translate (vic*speed*Time.deltaTime);
 	}
 
 	// Enqueue actions to the actionList
