@@ -276,7 +276,7 @@ public class TutorialController : MonoBehaviour {
 						}
 					}
 					if (holding == 1) {
-						holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+						holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, -1f);
 					}
 				}
 				// Jumping
@@ -295,7 +295,7 @@ public class TutorialController : MonoBehaviour {
 							}
 						}
 						if (holding == 1) {
-							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, -1f);
 						}
 					}
 					if (jumping == 2) {
@@ -303,7 +303,7 @@ public class TutorialController : MonoBehaviour {
 						RunRobot (prevPoint, currPoint, direction, speed);
 						jumping = 3;
 						if (holding == 1) {
-							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, -1f);
 						}
 					}
 					if (jumping == 3) {
@@ -320,7 +320,7 @@ public class TutorialController : MonoBehaviour {
 							}
 						}
 						if (holding == 1) {
-							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+							holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, -1f);
 						}
 					}
 				}
@@ -339,7 +339,7 @@ public class TutorialController : MonoBehaviour {
 			if (instjump == 2) {
 				print ("Hopdown");
 				if (holding == 1) {
-					holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, 0f);
+					holdACl.transform.position = robotCl.transform.position + new Vector3 (0.1f, -0.1f, -1f);
 				}
 				if ((nearlyEqual(robotCl.transform.position.y, (-0.5f), 0.05f))||(robotCl.transform.position.y < -0.5f)){
 					print ("ExitHop");
@@ -506,11 +506,14 @@ public class TutorialController : MonoBehaviour {
 				holding = 0;
 				break;
 			case 'u':
-				if ((holding > 0)&&((currPoint >= randBasket - 1)&&(currPoint <= randBasket + 1))) {
+				//if ((holding > 0)&&((currPoint >= randBasket - 1)&&(currPoint <= randBasket + 1))) {
+				if (holding > 0) {
 					// ADDSTUFF -- move apple to basket
-					holding = 0;
 					throwing = 1;
-					basketed = basketed + 1;
+					holding = 0;
+					if ((currPoint >= randBasket - 1) && (currPoint <= randBasket + 1)) {
+						basketed = basketed + 1;
+					}
 				}
 				break;
 			case 'i':
