@@ -5,11 +5,11 @@ public class TutorialController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for gameview initialization
-	public Vector3 robotValues; // Default: [0,  0.5, 4]
-	public Vector3 startValues; // Default: zero
-	public Vector3 obstacleValues; // Default: [0, -1, 2]
-	public Vector3 basketValues; // Default: [0, -0.65, 2]
-	public Vector3 appleValues; // Default: [0, 1.1, 2]
+	public Vector3 robotValues = new Vector3 (0f, 0.5f, 4f);
+	public Vector3 startValues = Vector3.zero;
+	public Vector3 obstacleValues = new Vector3 (0f, -1f, 2f);
+	public Vector3 basketValues = new Vector3 (0f, -0.65f, 2f);
+	public Vector3 appleValues = new Vector3 (3.2f, 1f, 2f);
 	public GameObject robot;
 	public GameObject obstacle;
 	public GameObject basket;
@@ -19,9 +19,10 @@ public class TutorialController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for actionList initialization and updates
-	public Vector3 listStartValues; //Default: [-8.5,  3.5, 0]
-	public Vector3 pressPlayValues; // Default: [-8, -5, 0]
-	public Vector3 pressStopValues; // Default: [-9, -5, 0]
+	public Vector3 listStartValues = new Vector3 (-8.5f, 3.5f, 0f);
+	public Vector3 pressPlayValues = new Vector3 (-8f, -5f, 0f);
+	public Vector3 pressStopValues = new Vector3 (-9f, -5f, 0f);
+	public int speed = 2;
 
 	public GameObject listMoveLeft;
 	public GameObject listMoveRight;
@@ -48,13 +49,14 @@ public class TutorialController : MonoBehaviour {
 	private int prevPoint;
 	private int nextPoint;
 	private float midPoint;
-	private int playMode; // Not playing ~ 0, playing ~ 1
-	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
-	private int moving; // Not moving ~ 0, moving ~ 1
-	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
-	private int holding;
-	private int basketed;
-	public int speed; // Default: 2
+	// Variables to be used for real-time checking
+	private int playMode;	// Not playing ~ 0, playing ~ 1
+	private int direction;	// Left ~ -1, stopped ~ 0, right ~ 1
+	private int moving;		// Not moving ~ 0, moving ~ 1
+	private int jumping;	// Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3, on-spot ~ 4/5
+	private int holding;	// Number of apples held
+	private int throwing;	// Number of apples throwing
+	private int basketed;	// Number of apples in the basket
 
 	// Initialization
 	// Generally the robot will start from a random point (block) on the left of the screen
@@ -75,12 +77,13 @@ public class TutorialController : MonoBehaviour {
 		moving = 0;
 		jumping = 0;
 		holding = 0;
+		throwing = 0;
 		basketed = 0;
 		// Initialize robot and start-finish lines
 		InitializeTutorial (randStart, currPoint, randObstacle);
-	
+
 	}
-	
+
 	// Update is called once per frame
 	// movs contains the sequence of moves entered -- from left to right q,w,e,r,t,y,u,i
 	public string movs = "";
@@ -391,47 +394,47 @@ public class TutorialController : MonoBehaviour {
 			nextMov = movs[i];
 			switch (nextMov)
 			{
-				case 'q':
-					if (currPoint != (randObstacle + 1)) {
-						currPoint = currPoint - 1;
-					}
-					break;
-				case 'w':
-					if (currPoint != (randObstacle - 1)) {
-						currPoint = currPoint + 1;
-					}
-					break;
-				case 'e':
-					if (currPoint != (randObstacle - 2)) {
-						currPoint = currPoint + 2;
-						jumping = 1;
-					}
-					break;
-				case 'r':
-					if ((currPoint == 15)||(currPoint ==16)||(currPoint ==17)) {
-						// ADDSTUFF -- delete/ move apple from tree
-						holding = 1;
-					}
-					break;
-				case 't':
-					// ADDSTUFF -- check if already holding, instantiate
+			case 'q':
+				if (currPoint != (randObstacle + 1)) {
+					currPoint = currPoint - 1;
+				}
+				break;
+			case 'w':
+				if (currPoint != (randObstacle - 1)) {
+					currPoint = currPoint + 1;
+				}
+				break;
+			case 'e':
+				if (currPoint != (randObstacle - 2)) {
+					currPoint = currPoint + 2;
+					jumping = 1;
+				}
+				break;
+			case 'r':
+				if ((currPoint == 15)||(currPoint ==16)||(currPoint ==17)) {
+					// ADDSTUFF -- delete/ move apple from tree
+					holding = 1;
+				}
+				break;
+			case 't':
+				// ADDSTUFF -- check if already holding, instantiate
+				holding = 0;
+				break;
+			case 'y':
+				// ADDSTUFF -- check if already holding, instantiate
+				holding = 0;
+				break;
+			case 'u':
+				if ((holding > 0)&&((currPoint >= randBasket - 1)&&(currPoint <= randBasket + 1))) {
+					// ADDSTUFF -- move apple to basket
 					holding = 0;
-					break;
-				case 'y':
-					// ADDSTUFF -- check if already holding, instantiate
-					holding = 0;
-					break;
-				case 'u':
-					if ((holding > 0)&&((currPoint >= randBasket - 1)&&(currPoint <= randBasket + 1))) {
-						// ADDSTUFF -- move apple to basket
-						holding = 0;
-						basketed = basketed + 1;
-					}
-					break;
-				case 'i':
-					// ADDSTUFF -- check if empty, instantiate
-					basketed = 0;
-					break;
+					basketed = basketed + 1;
+				}
+				break;
+			case 'i':
+				// ADDSTUFF -- check if empty, instantiate
+				basketed = 0;
+				break;
 			}
 			nextPoint = currPoint;
 			midPoint = prevPoint + (currPoint - prevPoint) / 2;
@@ -700,7 +703,6 @@ public class TutorialController : MonoBehaviour {
 	// Use movs to find the robot's next moves
 	void HandleRobot (int randStart, string movs) {
 		char nextMov;
-
 		for (int i = 0; i < movs.Length; i++) 
 		{
 			nextMov = movs[i];

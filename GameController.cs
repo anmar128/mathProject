@@ -5,17 +5,17 @@ public class GameController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for gameview initialization
-	public Vector3 robotValues;
-	public Vector3 startValues;
-	public Vector3 finishValues;
+	public Vector3 robotValues = new Vector3 (6.5f, 0.6f, 0f);
+	public Vector3 startValues = new Vector3 (6.5f, 0f, 0f);
+	public Vector3 finishValues = new Vector3 (6.5f, 0.3f, 0f);
 	public GameObject robot;
 	public GameObject startPoint;
 	public GameObject finishPoint;
 	public GameObject breakPoint;
 	public GameObject youWin;
 
-	public Vector3 numStartValues;
-	public Vector3 numFinishValues;
+	public Vector3 numStartValues = new Vector3 (6.5f, -0.5f, 0f);
+	public Vector3 numFinishValues = new Vector3 (6.5f, -0.5f, 0f);
 	public GameObject numOne;
 	public GameObject numTwo;
 	public GameObject numThree;
@@ -29,9 +29,9 @@ public class GameController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for actionList initialization and updates
-	public Vector3 listStartValues; //Default: [-8.5,  3.5, 0]
-	public Vector3 pressPlayValues; // Default: [-8, -5, 0]
-	public Vector3 pressStopValues; // Default: [-9, -5, 0]
+	public Vector3 listStartValues = new Vector3 (-8.5f, 3.5f, 0f);
+	public Vector3 pressPlayValues = new Vector3 (-8f, -5f, 0f);
+	public Vector3 pressStopValues = new Vector3 (-9f, -5f, 0f);
 
 	public GameObject listBk50;
 	public GameObject listBk10;
@@ -53,15 +53,16 @@ public class GameController : MonoBehaviour {
 	private int currPoint;
 	private int prevPoint;
 	private float midPoint;
-	private int playMode; // Not playing ~ 0, playing ~ 1
-	private int jumping; // Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
-	private int direction; // Left ~ -1, stopped ~ 0, right ~ 1
-	private float dex;
+	// Variables to be used for real-time checking
+	private int playMode;	// Not playing ~ 0, playing ~ 1
+	private int jumping;	// Not jumping ~ 0, ascending ~ 1, mid-stop ~ 2, descending ~ 3
+	private int direction;	// Left ~ -1, stopped ~ 0, right ~ 1
+	private float dex;		// Distance from prev to curr point
 
-	// Float variables containing the actual x-values of line start, end and speed
-	public float xMin; // Default: -6.5
-	public float xMax; // Default: 6.5
-	public float speed; // Default: 2
+	// Variables containing the actual x-values of line start, end and speed
+	public float xMin = -6.5f;
+	public float xMax = 6.5f;
+	public float speed = 1;
 
 	// Initialization
 	// Generally the maximum startValue and finishValue shall be equal, x-value-wise
