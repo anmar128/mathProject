@@ -220,11 +220,10 @@ public class TutorialController : MonoBehaviour {
 						for (int i = 0; i < prevList.Length; i++){
 							Destroy (prevList[i]);
 						}
-						/*// Delete apples from previous plays
-					prevList = GameObject.FindGameObjectsWithTag ("apple");
-					for (int i = 0; i < prevList.Length; i++) {
-						Destroy (prevList [i]);
-					}*/
+						prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+						if (prevList.Length > 0) {
+							InitializeTutorial (randStart, randStart, randObstacle);
+						}
 						// Actually enter play mode
 						playMode = 1;
 						print (movs);

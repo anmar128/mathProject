@@ -216,6 +216,10 @@ public class GameController : MonoBehaviour {
 						for (int i = 0; i < prevList.Length; i++) {
 							Destroy (prevList [i]);
 						}
+						prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+						if (prevList.Length > 0) {
+							InitializeRobot (randStart, randStart, randFinish);
+						}
 						// Actually enter play mode
 						playMode = 1;
 						print (movs);
