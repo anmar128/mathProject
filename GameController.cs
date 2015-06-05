@@ -72,11 +72,13 @@ public class GameController : MonoBehaviour {
 		// Calculation of start and finish values
 		randStart = Random.Range(0, 15);
 		randFinish = Random.Range(40, 65);
+		/*
 		currPoint = randStart;
 		prevPoint = randStart;
 		playMode = 0;
 		jumping = 0;
 		direction = 0;
+		*/
 		// Initialize robot and start-finish lines
 		InitializeRobot (randStart, currPoint, randFinish);
 	}
@@ -288,6 +290,12 @@ public class GameController : MonoBehaviour {
 	// Initialize robot and start-finish lines
 	void InitializeRobot (int randStart, int currPoint, int randFinish) {
 		string robotTag = "player";
+
+		currPoint = randStart;
+		prevPoint = randStart;
+		playMode = 0;
+		jumping = 0;
+		direction = 0;
 
 		// Delete robot copies from previous plays
 		// Must delete only if there is at least one pressdPlay-tagged object

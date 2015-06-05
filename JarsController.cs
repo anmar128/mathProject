@@ -5,10 +5,10 @@ public class JarsController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for gameview initialization
-	public Vector3 robotValues; //Default: [0, -6, 4]
-	public Vector3 jarSValues; //Default: [5.5, 1, 0]
-	public Vector3 jarMValues; //Default: [3, 1.3, 0]
-	public Vector3 jarLValues; //Default: [-4, 1.5, 0]
+	public Vector3 robotValues = new Vector3 (0f, -6f, 4f);
+	public Vector3 jarSValues = new Vector3 (5.5f, 1f, 0f);
+	public Vector3 jarMValues = new Vector3 (3f, 1.3f, 0f);
+	public Vector3 jarLValues = new Vector3 (-4f, 1.5f, 0f);
 	public GameObject robot;
 	public GameObject jarS;
 	public GameObject jarM;
@@ -17,9 +17,9 @@ public class JarsController : MonoBehaviour {
 
 	// GameObject and Vector3 variables to be used
 	// for actionList initialization and updates
-	public Vector3 listStartValues; //Default: [-8.5,  3.5, 0]
-	public Vector3 pressPlayValues; // Default: [-8, -5, 0]
-	public Vector3 pressStopValues; // Default: [-9, -5, 0]
+	public Vector3 listStartValues = new Vector3 (-8.5f, 3.5f, 0f);
+	public Vector3 pressPlayValues = new Vector3 (-8f, -5f, 0f);
+	public Vector3 pressStopValues = new Vector3 (-9f, -5f, 0f);
 
 	public GameObject listPickS;
 	public GameObject listPickM;
