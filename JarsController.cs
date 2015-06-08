@@ -20,6 +20,7 @@ public class JarsController : MonoBehaviour {
 	public Vector3 listStartValues = new Vector3 (-8.5f, 3.5f, 0f);
 	public Vector3 pressPlayValues = new Vector3 (-8f, -5f, 0f);
 	public Vector3 pressStopValues = new Vector3 (-9f, -5f, 0f);
+	public int speed = 2;
 
 	public GameObject listPickS;
 	public GameObject listPickM;
@@ -34,6 +35,17 @@ public class JarsController : MonoBehaviour {
 	public GameObject listSinkOff;
 	public GameObject pressPlay;
 	public GameObject pressStop;
+
+	// GameObjects to be used for gameplay
+	private GameObject robotCl;
+	private GameObject jarSCl;
+	private GameObject jarMCl;
+	private GameObject jarLCl;
+
+	// Variables to be used for real-time checking
+	private int filledS;
+	private int filledM;
+	private int filledL;
 
 	// Initialization
 	void Start () {
@@ -209,6 +221,35 @@ public class JarsController : MonoBehaviour {
 
 	// Initialize robot and jars
 	void InitializeJars () {
+		string robotTag = "player";
+		string jarSTag = "jars";
+		string jarMTag = "jarm";
+		string jarLTag = "jarl";
+
+		// Delete robot and jar copies from previous plays
+		// Must delete only if there is at least one pressdPlay-tagged object
+		GameObject[] prevList;
+		prevList = GameObject.FindGameObjectsWithTag ("pressdPlay");
+		if (prevList.Length > 0) {
+			GameObject[] prevList2;
+			prevList2 = GameObject.FindGameObjectsWithTag ("player");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+			prevList2 = GameObject.FindGameObjectsWithTag ("jars");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+			prevList2 = GameObject.FindGameObjectsWithTag ("jarm");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+			prevList2 = GameObject.FindGameObjectsWithTag ("jarl");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+		}
+
 		// Initialize poisition-rotation for the robot and the jars
 		Vector3 robotPosition = new Vector3 (robotValues.x, robotValues.y, robotValues.z);
 		Vector3 jarSPosition = new Vector3 (jarSValues.x, jarSValues.y, jarSValues.z);
@@ -219,11 +260,15 @@ public class JarsController : MonoBehaviour {
 		Quaternion jarMRotation = Quaternion.identity;
 		Quaternion jarLRotation = Quaternion.identity;
 
-		// Instantiate poisition-rotation for the start-finish lines and the robot
-		Instantiate (robot, robotPosition, robotRotation);
-		Instantiate (jarS, jarSPosition, jarSRotation);
-		Instantiate (jarM, jarMPosition, jarMRotation);
-		Instantiate (jarL, jarLPosition, jarLRotation);
+		// Instantiate poisition-rotation for the robot and the jars
+		robotCl = Instantiate (robot, robotPosition, robotRotation) as GameObject;
+		jarSCl = Instantiate (jarS, jarSPosition, jarSRotation) as GameObject;
+		jarMCl = Instantiate (jarM, jarMPosition, jarMRotation) as GameObject;
+		jarLCl = Instantiate (jarL, jarLPosition, jarLRotation) as GameObject;
+		robotCl.gameObject.tag = robotTag;
+		jarSCl.gameObject.tag = jarSTag;
+		jarMCl.gameObject.tag = jarMTag;
+		jarLCl.gameObject.tag = jarLTag;
 	}
 
 	// Enqueue actions to the actionList
