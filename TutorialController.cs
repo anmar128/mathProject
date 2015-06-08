@@ -63,6 +63,24 @@ public class TutorialController : MonoBehaviour {
 	private int throwing;	// Number of apples throwing
 	private int basketed;	// Number of apples in the basket
 
+	// Variables to be used for side-bar and/ or notifications
+	public Vector3 pressGridValues = new Vector3 (6.5f, 4f, 0f);
+	public Vector3 pressInfoValues = new Vector3 (6.5f, 3.4f, 0f);
+	public Vector3 pressRestartValues = new Vector3 (6.5f, 2.8f, 0f);
+	public Vector3 pressShoGridValues = new Vector3 (300f, 195f, 0f);
+	public Vector3 pressShoInfoValues = new Vector3 (120f, 165f, 0f);
+	public Vector3 pressShoRestartValues = new Vector3 (285f, 140f, 0f);
+	private Canvas canvasComponent;
+	public GameObject pressGrid;
+	public GameObject pressInfo;
+	public GameObject pressRestart;
+	public GameObject showGrid;
+	public GameObject showInfo;
+	public GameObject showRestart;
+	private int clickdGrid;
+	private int clickdInfo;
+	private int clickdRestart;
+
 	// Initialization
 	// Generally the robot will start from a random point (block) on the left of the screen
 	// Counting begins from the first complete block, so the whole image contains 19 blocks
@@ -70,6 +88,7 @@ public class TutorialController : MonoBehaviour {
 	// Blocks in scene x-values: 1 ~ 6.4 | 2 ~ 5.7 | 3 ~ 5 | 4 ~ 4.3 | etc
 	// Apples shall be instantiated in blocks 15, 16, 17
 	void Start () {
+		canvasComponent = GameObject.Find("Canvas").GetComponent<Canvas>();
 		// Calculation of start and finish values
 		randStart = Random.Range (9, 11);
 		randObstacle = Random.Range (11, 13);
@@ -105,6 +124,87 @@ public class TutorialController : MonoBehaviour {
 			RaycastHit hit;
 			if (Physics.Raycast (ray, out hit)) {
 				string hitTag = hit.transform.tag;
+				//Handle clicks on the side-bar -- exit, info, restart
+				if ((hitTag == "butmenu") && (Time.time > nextClick)) {
+					clickdGrid = clickdGrid + 1;
+					nextClick = Time.time + clickRate;
+					if (clickdGrid > 1) {
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdmenu");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						prevList = GameObject.FindGameObjectsWithTag ("texmenu");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						clickdGrid = 0;
+						Application.LoadLevel ("ExcMenu");
+					} else {
+						Vector3 butPosition = pressGridValues;
+						Vector3 shoPosition = pressShoGridValues;
+						Quaternion butRotation = Quaternion.identity;
+						Quaternion shoRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressGrid, butPosition, butRotation) as GameObject;
+						GameObject tempTextBox = Instantiate (showGrid, shoPosition, shoRotation) as GameObject;
+						tempTextBox.transform.SetParent (canvasComponent.gameObject.transform, false);
+						pressButton.gameObject.tag = "pressdmenu";
+						tempTextBox.gameObject.tag = "texmenu";
+					}
+				}
+				if ((hitTag == "butinfo") && (Time.time > nextClick)) {
+					clickdInfo = clickdInfo + 1;
+					nextClick = Time.time + clickRate;
+					if (clickdInfo > 1) {
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdinfo");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						prevList = GameObject.FindGameObjectsWithTag ("texinfo");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						clickdInfo = 0;
+					} else {
+						Vector3 butPosition = pressInfoValues;
+						Vector3 shoPosition = pressShoInfoValues;
+						Quaternion butRotation = Quaternion.identity;
+						Quaternion shoRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressInfo, butPosition, butRotation) as GameObject;
+						GameObject tempTextBox = Instantiate (showInfo, shoPosition, shoRotation) as GameObject;
+						tempTextBox.transform.SetParent (canvasComponent.gameObject.transform, false);
+						pressButton.gameObject.tag = "pressdinfo";
+						tempTextBox.gameObject.tag = "texinfo";
+					}
+				}
+				if ((hitTag == "butrestart") && (Time.time > nextClick)) {
+					clickdRestart = clickdRestart + 1;
+					nextClick = Time.time + clickRate;
+					if (clickdRestart > 1) {
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdrestart");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						prevList = GameObject.FindGameObjectsWithTag ("texrestart");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						clickdRestart = 0;
+						Application.LoadLevel ("ExcOne");
+					} else {
+						Vector3 butPosition = pressRestartValues;
+						Vector3 shoPosition = pressShoRestartValues;
+						Quaternion butRotation = Quaternion.identity;
+						Quaternion shoRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressRestart, butPosition, butRotation) as GameObject;
+						GameObject tempTextBox = Instantiate (showRestart, shoPosition, shoRotation) as GameObject;
+						tempTextBox.transform.SetParent (canvasComponent.gameObject.transform, false);
+						pressButton.gameObject.tag = "pressdrestart";
+						tempTextBox.gameObject.tag = "texrestart";
+					}
+				}
 				// Clicks won't work when in play-mode
 				if (playMode == 0) {
 					// Handle click on the control panel icons -- to add actions on the actionList
@@ -391,6 +491,10 @@ public class TutorialController : MonoBehaviour {
 		throwing = 0;
 		basketed = 0;
 
+		clickdGrid = 0;
+		clickdInfo = 0;
+		clickdRestart = 0;
+
 		// Variables for tags and apple-objects
 		GameObject appleCl;
 		string robotTag = "player";
@@ -413,6 +517,14 @@ public class TutorialController : MonoBehaviour {
 				Destroy (prevList2[i]);
 			}
 			prevList2 = GameObject.FindGameObjectsWithTag ("apple");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+		}
+		prevList = GameObject.FindGameObjectsWithTag ("youwin");
+		if (prevList.Length > 0) {
+			GameObject[] prevList2;
+			prevList2 = GameObject.FindGameObjectsWithTag ("youwin");
 			for (int i = 0; i < prevList2.Length; i++) {
 				Destroy (prevList2[i]);
 			}
@@ -543,7 +655,8 @@ public class TutorialController : MonoBehaviour {
 			yield return new WaitForSeconds (2*timish);
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
 			Quaternion bravoRotation = Quaternion.identity;
-			Instantiate (youWin, bravoPosition, bravoRotation);
+			GameObject bravo = Instantiate (youWin, bravoPosition, bravoRotation) as GameObject;
+			bravo.gameObject.tag = "youwin";
 		}
 		playMode = 0;
 	}

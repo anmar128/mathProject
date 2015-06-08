@@ -64,11 +64,30 @@ public class GameController : MonoBehaviour {
 	public float xMax = 6.5f;
 	public float speed = 1;
 
+	// Variables to be used for side-bar and/ or notifications
+	public Vector3 pressGridValues = new Vector3 (6.5f, 4f, 0f);
+	public Vector3 pressInfoValues = new Vector3 (6.5f, 3.4f, 0f);
+	public Vector3 pressRestartValues = new Vector3 (6.5f, 2.8f, 0f);
+	public Vector3 pressShoGridValues = new Vector3 (300f, 195f, 0f);
+	public Vector3 pressShqInfoValues = new Vector3 (210f, 165f, 0f);
+	public Vector3 pressShoRestartValues = new Vector3 (285f, 140f, 0f);
+	private Canvas canvasComponent;
+	public GameObject pressGrid;
+	public GameObject pressInfo;
+	public GameObject pressRestart;
+	public GameObject showGrid;
+	public GameObject showInfo;
+	public GameObject showRestart;
+	private int clickdGrid;
+	private int clickdInfo;
+	private int clickdRestart;
+
 	// Initialization
 	// Generally the maximum startValue and finishValue shall be equal, x-value-wise
 	// In the case where |startValue| = |finishValue| = 6.5, we will display numbers in [0,65] and
 	// startPoint ~ [1,15], finishPoint ~ [40,65]
 	void Start () {
+		canvasComponent = GameObject.Find("Canvas").GetComponent<Canvas>();
 		// Calculation of start and finish values
 		randStart = Random.Range(0, 15);
 		randFinish = Random.Range(40, 65);
@@ -97,6 +116,87 @@ public class GameController : MonoBehaviour {
 			RaycastHit hit;
 			if (Physics.Raycast (ray, out hit)) {
 				string hitTag = hit.transform.tag;
+				//Handle clicks on the side-bar -- exit, info, restart
+				if ((hitTag == "butmenu") && (Time.time > nextClick)) {
+					clickdGrid = clickdGrid + 1;
+					nextClick = Time.time + clickRate;
+					if (clickdGrid > 1) {
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdmenu");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						prevList = GameObject.FindGameObjectsWithTag ("texmenu");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						clickdGrid = 0;
+						Application.LoadLevel ("ExcMenu");
+					} else {
+						Vector3 butPosition = pressGridValues;
+						Vector3 shoPosition = pressShoGridValues;
+						Quaternion butRotation = Quaternion.identity;
+						Quaternion shoRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressGrid, butPosition, butRotation) as GameObject;
+						GameObject tempTextBox = Instantiate (showGrid, shoPosition, shoRotation) as GameObject;
+						tempTextBox.transform.SetParent (canvasComponent.gameObject.transform, false);
+						pressButton.gameObject.tag = "pressdmenu";
+						tempTextBox.gameObject.tag = "texmenu";
+					}
+				}
+				if ((hitTag == "butinfo") && (Time.time > nextClick)) {
+					clickdInfo = clickdInfo + 1;
+					nextClick = Time.time + clickRate;
+					if (clickdInfo > 1) {
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdinfo");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						prevList = GameObject.FindGameObjectsWithTag ("texinfo");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						clickdInfo = 0;
+					} else {
+						Vector3 butPosition = pressInfoValues;
+						Vector3 shoPosition = pressShqInfoValues;
+						Quaternion butRotation = Quaternion.identity;
+						Quaternion shoRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressInfo, butPosition, butRotation) as GameObject;
+						GameObject tempTextBox = Instantiate (showInfo, shoPosition, shoRotation) as GameObject;
+						tempTextBox.transform.SetParent (canvasComponent.gameObject.transform, false);
+						pressButton.gameObject.tag = "pressdinfo";
+						tempTextBox.gameObject.tag = "texinfo";
+					}
+				}
+				if ((hitTag == "butrestart") && (Time.time > nextClick)) {
+					clickdRestart = clickdRestart + 1;
+					nextClick = Time.time + clickRate;
+					if (clickdRestart > 1) {
+						GameObject[] prevList;
+						prevList = GameObject.FindGameObjectsWithTag ("pressdrestart");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						prevList = GameObject.FindGameObjectsWithTag ("texrestart");
+						for (int i = 0; i < prevList.Length; i++) {
+							Destroy (prevList [i]);
+						}
+						clickdRestart = 0;
+						Application.LoadLevel ("ExcSeven");
+					} else {
+						Vector3 butPosition = pressRestartValues;
+						Vector3 shoPosition = pressShoRestartValues;
+						Quaternion butRotation = Quaternion.identity;
+						Quaternion shoRotation = Quaternion.identity;
+						GameObject pressButton = Instantiate (pressRestart, butPosition, butRotation) as GameObject;
+						GameObject tempTextBox = Instantiate (showRestart, shoPosition, shoRotation) as GameObject;
+						tempTextBox.transform.SetParent (canvasComponent.gameObject.transform, false);
+						pressButton.gameObject.tag = "pressdrestart";
+						tempTextBox.gameObject.tag = "texrestart";
+					}
+				}
 				// Clicks won't work when in play-mode
 				if (playMode == 0) {
 					// Handle click on the control panel icons -- to add actions on the actionList
@@ -312,6 +412,14 @@ public class GameController : MonoBehaviour {
 				Destroy (prevList2[i]);
 			}
 		}
+		prevList = GameObject.FindGameObjectsWithTag ("youwin");
+		if (prevList.Length > 0) {
+			GameObject[] prevList2;
+			prevList2 = GameObject.FindGameObjectsWithTag ("youwin");
+			for (int i = 0; i < prevList2.Length; i++) {
+				Destroy (prevList2[i]);
+			}
+		}
 
 		// Initialize poisition-rotation for the lines and the robot
 		Vector3 startPosition = new Vector3 (ValueX(randStart), startValues.y, startValues.z);
@@ -425,7 +533,6 @@ public class GameController : MonoBehaviour {
 	IEnumerator MoveRobot (string movs) {
 		char nextMov;
 		float timish;
-		string breakTag = "line";
 		// Variables holding current point position-rotation to be used for instantiation -- Convert currPoint to string
 		//string currStr = currPoint.ToString();
 		Vector3 currPosition = new Vector3 ((-startValues.x+currPoint/10), startValues.y, startValues.z);
@@ -486,13 +593,14 @@ public class GameController : MonoBehaviour {
 			JumpRobot (prevPoint, currPoint, direction, dex, speed);
 			yield return new WaitForSeconds (timish);
 			GameObject breakLine = Instantiate (breakPoint, currPosition, currRotation) as GameObject;
-			breakLine.gameObject.tag = breakTag;
+			breakLine.gameObject.tag = "line";
 		}
 		// Check the result
 		if (currPoint == randFinish){
 			Vector3 bravoPosition = new Vector3 (0, 0, 0);
 			Quaternion bravoRotation = Quaternion.identity;
-			Instantiate (youWin, bravoPosition, bravoRotation);
+			GameObject bravo = Instantiate (youWin, bravoPosition, bravoRotation) as GameObject;
+			bravo.gameObject.tag = "youwin";
 		}
 		playMode = 0;
 	}
